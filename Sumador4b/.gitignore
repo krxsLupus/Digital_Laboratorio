@@ -1,0 +1,24 @@
+# Carpetas generadas por compilación y síntesis
+db/
+incremental_db/
+output_files/
+simulation/
+greybox/
+
+# Archivos de estado de usuario y reportes temporales
+*.qws
+*.rpt
+*.summary
+*.done
+*.pin
+*.bak
+*.smsg
+
+# Archivos binarios de programación pesados
+*.sof
+*.pof
+
+# Archivos temporales de simulación (Icarus / GTKWave / ModelSim)
+*.vcd
+*.vvp
+*.out
