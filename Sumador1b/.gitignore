@@ -1,0 +1,14 @@
+# Archivos temporales y bases de datos de Quartus
+/db/
+/incremental_db/
+/output_files/
+/hc_output/
+*.qws
+*.srf
+*.rpt
+*.summary
+*.done
+
+# Archivos de simulación de Icarus / GTKWave
+*.vcd
+*_sim
