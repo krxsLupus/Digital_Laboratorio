@@ -1,17 +1,14 @@
+//test bench del sumador de 1bit en vscode, genera un archivo para poder visualizar todo en GTKwave
+
 `timescale 1ns / 1ps
 
 module sumador_tb;
-
-    // Registros para controlar las entradas de prueba
     reg a;
     reg b;
     reg cin;
-
-    // Cables para leer las salidas del módulo
     wire suma;
     wire cout;
 
-    // Instancia del sumador (UUT: Unit Under Test)
     sumador uut (
         .a(a),
         .b(b),
