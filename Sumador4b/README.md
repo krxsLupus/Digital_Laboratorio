@@ -42,4 +42,5 @@ Las señales están asignadas específicamente para el encapsulado **EQFP-144** 
 ## Evidencias de Simulación
 Se realizó la verificación lógica del comportamiento del algoritmo sumador realizado. En la siguiente imagen se observa el correcto funcionamiento del algoritmo, sumando las entradas A y B. En el caso en que la suma produce un acarreo, al valor mostrado en la salida se deben sumar 16 (representados por el bit de acarreo en la pocisión 5):
 
-![Ondas de simulación del sumador de 4 bits](img/onda_sumador.png)
+<img width="1920" height="1080" alt="Simulación Sumador 4b" src="https://github.com/user-attachments/assets/8351261b-048b-4ed7-a012-e992071262df" />
+
