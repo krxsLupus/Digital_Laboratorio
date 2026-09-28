@@ -1,3 +1,5 @@
+#testeo del sumador de 1 bit en vscode#
+
 module sumador (
     input  wire a,
     input  wire b,
