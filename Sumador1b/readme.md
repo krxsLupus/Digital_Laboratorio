@@ -30,3 +30,4 @@ Las señales están asignadas específicamente para el encapsulado **EQFP-144** 
 ## Evidencias de Simulación
 Se realizó la verificación lógica del comportamiento del módulo mediante Icarus Verilog y la visualización de formas de onda en GTKWave. En la siguiente simulación se observa la respuesta en el tiempo de las salidas $Suma$ y $Cout$ frente a la secuencia completa de combinaciones de entrada:
 
+<img width="1598" height="217" alt="image" src="https://github.com/user-attachments/assets/cb392d20-1ce5-4a3b-a464-db1502776250" />
