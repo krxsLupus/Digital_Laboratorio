@@ -57,5 +57,8 @@ module detector_signo (
 
 endmodule
 ```
+Una vez implementado este bloque, y combinándolo con el anterior, se obtiene la siguiente simulación en GTKWave:
 
+<img width="1593" height="251" alt="image" src="https://github.com/user-attachments/assets/775abdab-244f-4377-9d52-1ba6dcc7be04" />
 
+En la simulación, se identifica claramente el caso de desbordamiento, y se representa el valor de Error = 1.
