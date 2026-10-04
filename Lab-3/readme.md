@@ -24,5 +24,14 @@ Con este código generamos el sumador/restador, a continuación se adjunta la ev
 <img width="1586" height="181" alt="image" src="https://github.com/user-attachments/assets/a7a05965-8fba-41f8-9d66-0180e332fe81" />
 
 
-Como se puede ver, en la simulación se plantearon 4 casos: la suma, la resta con resultado positivo, la resta con resultado negatico y la suma con resultado mayor a 4 bits.
+Como se puede ver, en la simulación se plantearon 4 casos críticos: la suma, la resta con resultado positivo, la resta con resultado negativo y la suma con resultado mayor a 4 bits.
+
+Al tener signo implícito, en los resultados de la simulación se evidencia el primer dígito hexadecimal como el indicador de signo (0 o 1), y el segundo dígito representa el resultado de la operación, en caso de ser positivo, o el complemento a 2, en caso de ser negativo.
+
+Para mayor comodidad, se adjunta también los resultados en binario:
+
+<img width="1586" height="181" alt="image" src="https://github.com/user-attachments/assets/33880e2c-9d3b-443d-80ce-2281ca70cfbf" />
+
+
+Para el cuarto caso, 
 
