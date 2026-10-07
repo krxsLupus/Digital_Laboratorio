@@ -12,7 +12,7 @@ Para la interacción física con el circuito lógico, el diseño mapea las seña
 
 ## Estructura de Módulos
 * `sumador.v`: Módulo principal que contiene la lógica combinacional del sumador completo mediante asignaciones continuas con ecuaciones booleanas:
-  $$Suma = A \oplus B \oplus Cin$$
+  $$Suma = A \oplus B \oplus Cin$$,
   $$Cout = (A \cdot B) + (Cin \cdot (A \oplus B))$$
 * `sumador_tb.v`: Banco de pruebas (*testbench*) utilizado para la verificación funcional mediante simulación, el cual secuencia las 8 combinaciones posibles y genera el archivo de ondas de tiempos (`sumador.vcd`).
 
