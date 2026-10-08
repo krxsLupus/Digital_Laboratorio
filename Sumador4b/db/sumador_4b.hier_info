@@ -1,0 +1,99 @@
+|sumadorDisplay
+sw_a[0] => sw_a[0].IN1
+sw_a[1] => sw_a[1].IN1
+sw_a[2] => sw_a[2].IN1
+sw_a[3] => sw_a[3].IN1
+sw_b[0] => sw_b[0].IN1
+sw_b[1] => sw_b[1].IN1
+sw_b[2] => sw_b[2].IN1
+sw_b[3] => sw_b[3].IN1
+sw_carryIn => sw_carryIn.IN1
+display[0] <= hex7seg:uut_display.seg
+display[1] <= hex7seg:uut_display.seg
+display[2] <= hex7seg:uut_display.seg
+display[3] <= hex7seg:uut_display.seg
+display[4] <= hex7seg:uut_display.seg
+display[5] <= hex7seg:uut_display.seg
+display[6] <= hex7seg:uut_display.seg
+dig_sel[0] <= <GND>
+dig_sel[1] <= <VCC>
+dig_sel[2] <= <VCC>
+dig_sel[3] <= <VCC>
+led_carryOut <= sumador4b:uut_adder.carryOut
+
+
+|sumadorDisplay|sumador4b:uut_adder
+a[0] => a[0].IN1
+a[1] => a[1].IN1
+a[2] => a[2].IN1
+a[3] => a[3].IN1
+b[0] => b[0].IN1
+b[1] => b[1].IN1
+b[2] => b[2].IN1
+b[3] => b[3].IN1
+carryIn => carryIn.IN1
+suma[0] <= sumador1b:bit0.suma
+suma[1] <= sumador1b:bit1.suma
+suma[2] <= sumador1b:bit2.suma
+suma[3] <= sumador1b:bit3.suma
+carryOut <= sumador1b:bit3.carryOut
+
+
+|sumadorDisplay|sumador4b:uut_adder|sumador1b:bit0
+a => suma.IN0
+a => carryOut.IN0
+b => suma.IN1
+b => carryOut.IN1
+carryIn => suma.IN1
+carryIn => carryOut.IN1
+suma <= suma.DB_MAX_OUTPUT_PORT_TYPE
+carryOut <= carryOut.DB_MAX_OUTPUT_PORT_TYPE
+
+
+|sumadorDisplay|sumador4b:uut_adder|sumador1b:bit1
+a => suma.IN0
+a => carryOut.IN0
+b => suma.IN1
+b => carryOut.IN1
+carryIn => suma.IN1
+carryIn => carryOut.IN1
+suma <= suma.DB_MAX_OUTPUT_PORT_TYPE
+carryOut <= carryOut.DB_MAX_OUTPUT_PORT_TYPE
+
+
+|sumadorDisplay|sumador4b:uut_adder|sumador1b:bit2
+a => suma.IN0
+a => carryOut.IN0
+b => suma.IN1
+b => carryOut.IN1
+carryIn => suma.IN1
+carryIn => carryOut.IN1
+suma <= suma.DB_MAX_OUTPUT_PORT_TYPE
+carryOut <= carryOut.DB_MAX_OUTPUT_PORT_TYPE
+
+
+|sumadorDisplay|sumador4b:uut_adder|sumador1b:bit3
+a => suma.IN0
+a => carryOut.IN0
+b => suma.IN1
+b => carryOut.IN1
+carryIn => suma.IN1
+carryIn => carryOut.IN1
+suma <= suma.DB_MAX_OUTPUT_PORT_TYPE
+carryOut <= carryOut.DB_MAX_OUTPUT_PORT_TYPE
+
+
+|sumadorDisplay|hex7seg:uut_display
+num[0] => Decoder0.IN3
+num[1] => Decoder0.IN2
+num[2] => Decoder0.IN1
+num[3] => Decoder0.IN0
+seg[0] <= WideOr6.DB_MAX_OUTPUT_PORT_TYPE
+seg[1] <= WideOr5.DB_MAX_OUTPUT_PORT_TYPE
+seg[2] <= WideOr4.DB_MAX_OUTPUT_PORT_TYPE
+seg[3] <= WideOr3.DB_MAX_OUTPUT_PORT_TYPE
+seg[4] <= WideOr2.DB_MAX_OUTPUT_PORT_TYPE
+seg[5] <= WideOr1.DB_MAX_OUTPUT_PORT_TYPE
+seg[6] <= WideOr0.DB_MAX_OUTPUT_PORT_TYPE
+
+

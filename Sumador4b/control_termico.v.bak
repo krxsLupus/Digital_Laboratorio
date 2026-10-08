@@ -1,0 +1,33 @@
+module control_termico (
+    input wire [3:0] t,      // Temperatura medida en la caldera
+    input wire [3:0] l,      // Temperatura objetivo del proceso
+    input wire sel,          // Señal de control del sumador/restador (1 = modo resta)
+    output wire perfectLed,  // Producto en condición ideal (R = 0)
+    output wire processLed,  // Producto en fabricación (R < 0)
+    output wire burnLed      // Producto quemado (R > 0)
+);
+
+    wire [3:0] r;            // Resultado de la operación
+    wire carryOut;           // Acarreo de salida
+
+    // Instancia del sumador/restador de 4 bits
+    sumador_restador4b calc_temp_inst (
+        .a(t),
+        .b(l),
+        .sel(sel),
+        .resultado(r),
+        .carryOut(carryOut)
+    );
+
+    // Lógica combinacional para encender los LEDs según el fundamento teórico:
+
+    // R = 0: Condición ideal. El resultado de la resta es exactamente cero.
+    assign perfectLed = (~r[3] & ~r[2] & ~r[1] & ~r[0]); 
+
+    // R < 0: En proceso. Si el acarreo final (Co) es 0, el resultado es negativo.
+    assign processLed = ~carryOut;
+
+    // R > 0: Quemado. Si el acarreo final (Co) es 1 (positivo) y no es la condición ideal (R!=0).
+    assign burnLed = carryOut & ~perfectLed;
+
+endmodule

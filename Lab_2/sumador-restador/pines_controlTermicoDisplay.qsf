@@ -1,0 +1,33 @@
+# Asignación de pines para controlTermicoDisplay (Cyclone IV EP4CE10E22C8N)
+# Uso en Quartus: Assignments > Import Assignments... y elegir este archivo.
+#
+# Switches, display y led_carryOut: mismos pines que sumadorDisplay en sumador_4b.qsf.
+# led_process, led_perfect y led_burn: PENDIENTE DE CONFIRMAR contra el esquemático
+# o la serigrafía de la tarjeta. Cambiar solo el número de pin si no coinciden.
+
+set_location_assignment PIN_68 -to sw_t[0]
+set_location_assignment PIN_67 -to sw_t[1]
+set_location_assignment PIN_66 -to sw_t[2]
+set_location_assignment PIN_65 -to sw_t[3]
+set_location_assignment PIN_64 -to sw_l[0]
+set_location_assignment PIN_60 -to sw_l[1]
+set_location_assignment PIN_59 -to sw_l[2]
+set_location_assignment PIN_58 -to sw_l[3]
+set_location_assignment PIN_89 -to sw_sel
+
+set_location_assignment PIN_133 -to dig_sel[0]
+set_location_assignment PIN_135 -to dig_sel[1]
+set_location_assignment PIN_136 -to dig_sel[2]
+set_location_assignment PIN_137 -to dig_sel[3]
+set_location_assignment PIN_128 -to display[0]
+set_location_assignment PIN_121 -to display[1]
+set_location_assignment PIN_125 -to display[2]
+set_location_assignment PIN_129 -to display[3]
+set_location_assignment PIN_132 -to display[4]
+set_location_assignment PIN_126 -to display[5]
+set_location_assignment PIN_124 -to display[6]
+
+set_location_assignment PIN_84 -to led_carryOut
+set_location_assignment PIN_83 -to led_process
+set_location_assignment PIN_80 -to led_perfect
+set_location_assignment PIN_77 -to led_burn

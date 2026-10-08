@@ -57,27 +57,100 @@ set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 set_global_assignment -name EDA_TEST_BENCH_ENABLE_STATUS TEST_BENCH_MODE -section_id eda_simulation
-set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH sumador4b_tb -section_id eda_simulation
+set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH sumador_restador_tb_con -section_id eda_simulation
 set_global_assignment -name EDA_TEST_BENCH_NAME sumador1b_tb -section_id eda_simulation
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id sumador1b_tb
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME sumador1b_tb -section_id sumador1b_tb
-set_global_assignment -name EDA_TEST_BENCH_FILE sumador1b_tb.v -section_id sumador1b_tb
 set_global_assignment -name EDA_TEST_BENCH_NAME sumador4b_tb -section_id eda_simulation
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id sumador4b_tb
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME sumador4b_tb -section_id sumador4b_tb
+set_global_assignment -name EDA_MAP_ILLEGAL_CHARACTERS ON -section_id eda_simulation
+set_global_assignment -name EDA_ENABLE_GLITCH_FILTERING ON -section_id eda_simulation
+set_global_assignment -name EDA_TEST_BENCH_FILE sumador1b_tb.v -section_id sumador1b_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sumador4b_tb.v -section_id sumador4b_tb
+set_global_assignment -name EDA_TEST_BENCH_NAME sumador_restador_tb_con -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id sumador_restador_tb_con
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME sumador_restador_tb_con -section_id sumador_restador_tb_con
+set_global_assignment -name EDA_TEST_BENCH_FILE "../sumador-restador/sumador_restador4b_tb.v" -section_id sumador_restador_tb_con
+set_global_assignment -name EDA_TEST_BENCH_FILE "../sumador-restador/control_termico_tb.v" -section_id sumador_restador_tb_con
+set_global_assignment -name VERILOG_FILE ../Sumador1b/sumador_tb.v
+set_global_assignment -name VERILOG_FILE ../Sumador1b/sumador.v
+set_global_assignment -name VERILOG_FILE "../sumador-restador/sumador_restador4b_tb.v"
+set_global_assignment -name VERILOG_FILE "../sumador-restador/sumador_restador4b.v"
+set_global_assignment -name VERILOG_FILE "../sumador-restador/controlTermicoDisplay.v"
+set_global_assignment -name VERILOG_FILE "../sumador-restador/control_termico_tb.v"
+set_global_assignment -name VERILOG_FILE "../sumador-restador/control_termico.v"
+set_global_assignment -name VERILOG_FILE sumadorDisplay.v
+set_global_assignment -name VERILOG_FILE sumador4b_tb.v
+set_global_assignment -name VERILOG_FILE sumador4b.v
+set_global_assignment -name VERILOG_FILE sumador1b_tb.v
+set_global_assignment -name VERILOG_FILE sumador1b.v
+set_global_assignment -name VERILOG_FILE hex7seg.v
+set_location_assignment PIN_64 -to sw_b[0]
+set_location_assignment PIN_60 -to sw_b[1]
+set_location_assignment PIN_59 -to sw_b[2]
+set_location_assignment PIN_58 -to sw_b[3]
+set_location_assignment PIN_68 -to sw_a[0]
+set_location_assignment PIN_67 -to sw_a[1]
+set_location_assignment PIN_66 -to sw_a[2]
+set_location_assignment PIN_65 -to sw_a[3]
+set_location_assignment PIN_83 -to led_carryOut
+set_location_assignment PIN_127 -to display[0]
+set_location_assignment PIN_126 -to display[1]
+set_location_assignment PIN_125 -to display[2]
+set_location_assignment PIN_124 -to display[3]
+set_location_assignment PIN_121 -to display[4]
+set_location_assignment PIN_120 -to display[5]
+set_location_assignment PIN_119 -to display[6]
+set_location_assignment PIN_133 -to dig_sel[0]
+set_location_assignment PIN_135 -to dig_sel[1]
+set_location_assignment PIN_136 -to dig_sel[2]
+set_location_assignment PIN_137 -to dig_sel[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to led_carryOut
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to sw_carryIn
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to sw_b[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to sw_b[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to sw_b[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to sw_b[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to sw_a[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to sw_a[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to sw_a[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to sw_a[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to display[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to display[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to display[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to display[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to display[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to display[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to display[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dig_sel[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dig_sel[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dig_sel[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dig_sel[3]
+set_location_assignment PIN_86 -to sel
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to a[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to a[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to a[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to a[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to b[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to b[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to b[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to b[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to carryOut
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to resultado[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to resultado[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to resultado[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to resultado[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to sel
+set_location_assignment PIN_80 -to resultado_led[3]
+set_location_assignment PIN_73 -to resultado_led[1]
+set_location_assignment PIN_74 -to resultado_led[2]
+set_location_assignment PIN_72 -to resultado_led[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to resultado_led[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to resultado_led[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to resultado_led[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to resultado_led[0]
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
-set_global_assignment -name VERILOG_FILE ../Sumador1b/sumador_tb.v
-set_global_assignment -name VERILOG_FILE ../Sumador1b/sumador.v
-set_global_assignment -name VERILOG_FILE sumador4b_tb.v
-set_global_assignment -name VERILOG_FILE sumador1b_tb.v
-set_global_assignment -name VERILOG_FILE "../sumador-restador/sumador_restador4b.v"
-set_global_assignment -name VERILOG_FILE "../sumador-restador/control_termico.v"
-set_global_assignment -name VERILOG_FILE sumador4b.v
-set_global_assignment -name VERILOG_FILE sumador1b.v
-set_global_assignment -name VECTOR_WAVEFORM_FILE Waveform1.vwf
-set_global_assignment -name VERILOG_FILE hex7seg.v
-set_global_assignment -name VERILOG_FILE sumadorDisplay.v
