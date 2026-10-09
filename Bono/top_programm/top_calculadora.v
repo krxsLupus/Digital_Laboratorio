@@ -1,29 +1,30 @@
 module top_calculadora (
-    input wire clk, 
-    input wire [3:0] A, 
-    input wire [3:0] B, 
-    input wire btn_sum,   // Pulsador para modo suma
-    input wire btn_sub,   // Pulsador para modo resta
-    output reg [6:0] seg, 
-    output reg [3:0] dig, 
-    output wire led_error,
+    input wire clk,
+    input wire [3:0] A,
+    input wire [3:0] B,
+    input wire btn_ApB,    // K2 (PIN_90): A + B
+    input wire btn_AmB,    // K3 (PIN_91): A - B
+    input wire btn_nApB,   // K4 (PIN_87): -A + B
+    input wire btn_nAmB,   // K5 (PIN_86): -A - B
+    output reg [6:0] seg,
+    output reg [3:0] dig,
     output wire led_signo
 );
 
-        reg Op_reg = 1'b0;
+    // modo = {negA, negB}: 00 A+B | 01 A-B | 10 -A+B | 11 -A-B
+    reg [1:0] modo = 2'b00;
 
-    
+    // Pulsadores activos en bajo; el modo se queda guardado hasta la siguiente pulsación
     always @(posedge clk) begin
-        if (~btn_sum) 
-            Op_reg <= 1'b0; // Cambiar a suma
-        else if (~btn_sub) 
-            Op_reg <= 1'b1; // Cambiar a resta
+        if      (~btn_ApB)  modo <= 2'b00;
+        else if (~btn_AmB)  modo <= 2'b01;
+        else if (~btn_nApB) modo <= 2'b10;
+        else if (~btn_nAmB) modo <= 2'b11;
     end
 
-    wire [4:0] S_raw;
+    wire [5:0] R_raw;
     wire signo_net;
-    wire error_net;
-    wire [3:0] mag_net;
+    wire [4:0] mag_net;
     wire [3:0] decenas_bcd;
     wire [3:0] unidades_bcd;
 
@@ -34,15 +35,14 @@ module top_calculadora (
     sumador_restador u_sum_rest (
         .A(A),
         .B(B),
-        .Op(Op_reg),
-        .S(S_raw)
+        .negA(modo[1]),
+        .negB(modo[0]),
+        .R(R_raw)
     );
 
     detector_signo u_det_signo (
-        .S(S_raw),
-        .Op(Op_reg),
+        .R(R_raw),
         .signo(signo_net),
-        .error(error_net),
         .mag(mag_net)
     );
 
@@ -63,11 +63,10 @@ module top_calculadora (
     );
 
     assign seg_signo = (signo_net) ? 7'b011_1111 : 7'b111_1111;
-    assign led_error = ~error_net;
-    assign led_signo = ~signo_net; // Se enciende = 0 si el signo es negativo
+    assign led_signo = ~signo_net; // Se enciende (= 0) si el signo es negativo
 
     reg [16:0] clk_div = 17'd0;
-     
+
     always @(posedge clk) begin
         clk_div <= clk_div + 1'b1;
     end
@@ -77,19 +76,19 @@ module top_calculadora (
     always @(*) begin
         case (selector_display)
             2'b00: begin
-                dig = 4'b1110; 
+                dig = 4'b1110;
                 seg = seg_unidades;
             end
             2'b01: begin
-                dig = 4'b1101; 
+                dig = 4'b1101;
                 seg = seg_decenas;
             end
             2'b10: begin
-                dig = 4'b1011; 
+                dig = 4'b1011;
                 seg = seg_signo;
             end
             2'b11: begin
-                dig = 4'b0111; 
+                dig = 4'b0111;
                 seg = 7'b111_1111;
             end
             default: begin
