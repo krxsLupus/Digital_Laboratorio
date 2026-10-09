@@ -65,8 +65,6 @@ set_global_assignment -name VERILOG_FILE detector_signo.v
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
-set_global_assignment -name NUM_PARALLEL_PROCESSORS 4
-set_global_assignment -name RESERVE_ALL_UNUSED_PINS_WEAK_PULLUP "AS INPUT TRI-STATED"
 set_location_assignment PIN_127 -to seg[0]
 set_location_assignment PIN_126 -to seg[1]
 set_location_assignment PIN_125 -to seg[2]
@@ -78,18 +76,15 @@ set_location_assignment PIN_133 -to dig[0]
 set_location_assignment PIN_135 -to dig[1]
 set_location_assignment PIN_136 -to dig[2]
 set_location_assignment PIN_137 -to dig[3]
-set_location_assignment PIN_58 -to A[3]
-set_location_assignment PIN_59 -to A[2]
-set_location_assignment PIN_60 -to A[1]
-set_location_assignment PIN_64 -to A[0]
-set_location_assignment PIN_65 -to B[3]
-set_location_assignment PIN_66 -to B[2]
-set_location_assignment PIN_67 -to B[1]
-set_location_assignment PIN_68 -to B[0]
-set_location_assignment PIN_90 -to btn_sum
-set_location_assignment PIN_91 -to btn_sub
+set_location_assignment PIN_68 -to A[0]
+set_location_assignment PIN_67 -to A[1]
+set_location_assignment PIN_66 -to A[2]
+set_location_assignment PIN_65 -to A[3]
+set_location_assignment PIN_64 -to B[0]
+set_location_assignment PIN_58 -to B[1]
+set_location_assignment PIN_59 -to B[2]
+set_location_assignment PIN_60 -to B[3]
+set_location_assignment PIN_42 -to Op
 set_location_assignment PIN_23 -to clk
-set_location_assignment PIN_85 -to led_signo
 set_location_assignment PIN_84 -to led_error
-set_global_assignment -name SDC_FILE Lab_3.sdc
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
