@@ -6,15 +6,13 @@ module top_calculadora (
     input wire btn_AmB,    // K3 (PIN_91): A - B
     input wire btn_nApB,   // K4 (PIN_87): -A + B
     input wire btn_nAmB,   // K5 (PIN_86): -A - B
-    output reg [6:0] seg,
+    output reg [6:0] seg,pues 
     output reg [3:0] dig,
     output wire led_signo
 );
 
-    // modo = {negA, negB}: 00 A+B | 01 A-B | 10 -A+B | 11 -A-B
+    // modo: 00 A+B | 01 A-B | 10 -A+B | 11 -A-B
     reg [1:0] modo = 2'b00;
-
-    // Pulsadores activos en bajo; el modo se queda guardado hasta la siguiente pulsación
     always @(posedge clk) begin
         if      (~btn_ApB)  modo <= 2'b00;
         else if (~btn_AmB)  modo <= 2'b01;
@@ -27,7 +25,6 @@ module top_calculadora (
     wire [4:0] mag_net;
     wire [3:0] decenas_bcd;
     wire [3:0] unidades_bcd;
-
     wire [6:0] seg_unidades;
     wire [6:0] seg_decenas;
     wire [6:0] seg_signo;
@@ -63,7 +60,7 @@ module top_calculadora (
     );
 
     assign seg_signo = (signo_net) ? 7'b011_1111 : 7'b111_1111;
-    assign led_signo = ~signo_net; // Se enciende (= 0) si el signo es negativo
+    assign led_signo = ~signo_net; // Se enciende si el signo es negativo
 
     reg [16:0] clk_div = 17'd0;
 
