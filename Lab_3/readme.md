@@ -48,13 +48,12 @@ El resultado `R` queda en complemento a 2 de 6 bits: `R[5]` es el bit de signo (
 
 A continuación se adjunta la evidencia de funcionamiento haciendo uso de GTKWave. Se plantearon casos para los cuatro modos con un par de valores intermedios (A = 9, B = 5) y con los valores extremos (A = B = 15):
 
-<!-- TODO: reemplazar con la captura nueva de GTKWave (R en hexadecimal) -->
-<img alt="Simulación del sumador/restador en GTKWave (hexadecimal)" src="img/gtkwave_sumador_restador.png" />
+<img width="1920" height="1080" alt="Captura de pantalla de 2026-10-18 14-37-27" src="https://github.com/user-attachments/assets/fdbc1de7-6039-462d-9dd4-7308d6031d93" />
 
 Para mayor comodidad, se adjuntan también los resultados en binario:
 
-<!-- TODO: reemplazar con la captura nueva de GTKWave (R en binario) -->
-<img alt="Simulación del sumador/restador en GTKWave (binario)" src="img/gtkwave_sumador_restador_bin.png" />
+<img width="1920" height="1080" alt="Captura de pantalla de 2026-10-18 14-36-41" src="https://github.com/user-attachments/assets/bfb8961d-2233-4740-9ff3-f4f52a2f46af" />
+
 
 Los valores esperados de `R` para estos casos son:
 
@@ -93,8 +92,7 @@ endmodule
 
 Combinando este bloque con el anterior, se obtiene la siguiente simulación en GTKWave:
 
-<!-- TODO: reemplazar con la captura nueva de GTKWave (sumador_restador + detector_signo) -->
-<img alt="Simulación del sumador/restador y el detector de signo en GTKWave" src="img/gtkwave_detector_signo.png" />
+<img width="1920" height="1080" alt="Captura de pantalla de 2026-10-18 14-34-21" src="https://github.com/user-attachments/assets/1b3b83b3-4077-4061-9a1c-b6409f6617d1" />
 
 ## Cuarto bloque (Conversor binario a BCD)
 
