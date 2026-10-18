@@ -62,3 +62,19 @@ Una vez implementado este bloque, y combinándolo con el anterior, se obtiene la
 <img width="1593" height="251" alt="image" src="https://github.com/user-attachments/assets/775abdab-244f-4377-9d52-1ba6dcc7be04" />
 
 En la simulación, se identifica claramente el caso de desbordamiento, y se representa el valor de Error = 1.
+
+## Simulación en Digital
+
+Además de la descripción en Verilog, el sistema se modeló y simuló como un diagrama de bloques en el simulador **Digital** (archivo `Bono_diagrama.dig`). En esta versión el circuito acepta operandos con signo: cada número de entrada tiene un valor de 4 bits (**A** y **B**) y un interruptor de signo (**negA** y **negB**) que indica si el operando es negativo. Así, el circuito calcula `±A ± B` y muestra el resultado con su signo en los displays de 7 segmentos.
+
+<img width="1920" height="1080" alt="Captura de pantalla de 2026-10-18 13-13-41" src="https://github.com/user-attachments/assets/12d1bc5f-2de5-4503-b8cd-73dec64fae73" />
+
+El diagrama se puede leer de izquierda a derecha en las siguientes etapas:
+
+1. **Extensión y signo de los operandos.** A y B (4 bits) se extienden a 6 bits con ceros en los bits más significativos. Cada operando pasa por una compuerta XOR con su interruptor de signo (negA / negB) replicado en los 6 bits, y luego por un sumador que le suma ese mismo bit de signo. Esto es exactamente el complemento a 2 (`~X + 1`) cuando el operando es negativo, y deja el valor igual cuando es positivo. El resultado son dos números con signo en complemento a 2 de 6 bits.
+2. **Suma de los operandos.** Un tercer bloque **Suma** suma los dos números con signo. El bit 5 del resultado es el bit de signo de la operación y los bits 0-4 contienen el valor en complemento a 2.
+3. **Cálculo de la magnitud (valor absoluto).** Los bits 0-4 pasan por otra XOR controlada por el bit de signo y un último sumador que le suma dicho bit, de modo que si el resultado es negativo se vuelve a aplicar el complemento a 2 para obtener su magnitud. Es el equivalente en hardware del cálculo de `mag` del módulo `detector_signo`.
+4. **Conversión a BCD.** La magnitud entra al bloque externo `bin_bcd`, que la separa en **decenas** y **unidades** (los mismos módulos descritos en Verilog, importados como "Archivo externo").
+5. **Decodificación y visualización.** Cada dígito BCD pasa por un decodificador `bcd_7s`, cuya salida de 7 bits (segmentos a-g) se conecta a su display de 7 segmentos. El bit de signo del resultado se invierte con una compuerta NOT y se lleva al display correspondiente al signo. La entrada inferior derecha controla la alimentación común de los displays.
+
+Con esto se verifica el funcionamiento completo de la cadena *operandos → suma/resta → signo y magnitud → BCD → 7 segmentos* antes de llevarla a la FPGA, donde el mismo flujo se implementa con los módulos `sumador_restador`, `detector_signo`, `bin_bcd`, `bcd_7s` y `top_calculadora`.
