@@ -1,0 +1,166 @@
+|top_calculadora
+clk => clk_div[0].CLK
+clk => clk_div[1].CLK
+clk => clk_div[2].CLK
+clk => clk_div[3].CLK
+clk => clk_div[4].CLK
+clk => clk_div[5].CLK
+clk => clk_div[6].CLK
+clk => clk_div[7].CLK
+clk => clk_div[8].CLK
+clk => clk_div[9].CLK
+clk => clk_div[10].CLK
+clk => clk_div[11].CLK
+clk => clk_div[12].CLK
+clk => clk_div[13].CLK
+clk => clk_div[14].CLK
+clk => clk_div[15].CLK
+clk => clk_div[16].CLK
+clk => Op_reg.CLK
+A[0] => sumador_restador:u_sum_rest.A[0]
+A[1] => sumador_restador:u_sum_rest.A[1]
+A[2] => sumador_restador:u_sum_rest.A[2]
+A[3] => sumador_restador:u_sum_rest.A[3]
+B[0] => sumador_restador:u_sum_rest.B[0]
+B[1] => sumador_restador:u_sum_rest.B[1]
+B[2] => sumador_restador:u_sum_rest.B[2]
+B[3] => sumador_restador:u_sum_rest.B[3]
+btn_sum => Op_reg.OUTPUTSELECT
+btn_sub => Op_reg.OUTPUTSELECT
+seg[0] << Mux6.DB_MAX_OUTPUT_PORT_TYPE
+seg[1] << Mux5.DB_MAX_OUTPUT_PORT_TYPE
+seg[2] << Mux4.DB_MAX_OUTPUT_PORT_TYPE
+seg[3] << Mux3.DB_MAX_OUTPUT_PORT_TYPE
+seg[4] << Mux2.DB_MAX_OUTPUT_PORT_TYPE
+seg[5] << Mux1.DB_MAX_OUTPUT_PORT_TYPE
+seg[6] << Mux0.DB_MAX_OUTPUT_PORT_TYPE
+dig[0] << Decoder0.DB_MAX_OUTPUT_PORT_TYPE
+dig[1] << Decoder0.DB_MAX_OUTPUT_PORT_TYPE
+dig[2] << Decoder0.DB_MAX_OUTPUT_PORT_TYPE
+dig[3] << Decoder0.DB_MAX_OUTPUT_PORT_TYPE
+led_error << detector_signo:u_det_signo.error
+led_signo << detector_signo:u_det_signo.signo
+
+
+|top_calculadora|sumador_restador:u_sum_rest
+A[0] => Add0.IN4
+A[1] => Add0.IN3
+A[2] => Add0.IN2
+A[3] => Add0.IN1
+B[0] => B_xor[0].IN0
+B[1] => B_xor[1].IN0
+B[2] => B_xor[2].IN0
+B[3] => B_xor[3].IN0
+Op => B_xor[0].IN1
+Op => B_xor[1].IN1
+Op => B_xor[2].IN1
+Op => B_xor[3].IN1
+Op => Add1.IN10
+S[0] <= Add1.DB_MAX_OUTPUT_PORT_TYPE
+S[1] <= Add1.DB_MAX_OUTPUT_PORT_TYPE
+S[2] <= Add1.DB_MAX_OUTPUT_PORT_TYPE
+S[3] <= Add1.DB_MAX_OUTPUT_PORT_TYPE
+S[4] <= Add1.DB_MAX_OUTPUT_PORT_TYPE
+
+
+|top_calculadora|detector_signo:u_det_signo
+S[0] => mag.DATAA
+S[0] => Add0.IN8
+S[1] => mag.DATAA
+S[1] => Add0.IN7
+S[2] => mag.DATAA
+S[2] => Add0.IN6
+S[3] => mag.DATAA
+S[3] => Add0.IN5
+S[4] => error.IN0
+S[4] => signo.DATAB
+Op => signo.OUTPUTSELECT
+Op => error.IN1
+signo <= signo.DB_MAX_OUTPUT_PORT_TYPE
+error <= error.DB_MAX_OUTPUT_PORT_TYPE
+mag[0] <= mag.DB_MAX_OUTPUT_PORT_TYPE
+mag[1] <= mag.DB_MAX_OUTPUT_PORT_TYPE
+mag[2] <= mag.DB_MAX_OUTPUT_PORT_TYPE
+mag[3] <= mag.DB_MAX_OUTPUT_PORT_TYPE
+
+
+|top_calculadora|bin_bcd:u_bin_bcd
+mag[0] => LessThan0.IN8
+mag[0] => unidades[0].DATAIN
+mag[1] => LessThan0.IN7
+mag[1] => Add0.IN6
+mag[1] => unidades.DATAA
+mag[2] => LessThan0.IN6
+mag[2] => Add0.IN5
+mag[2] => unidades.DATAA
+mag[3] => LessThan0.IN5
+mag[3] => Add0.IN4
+mag[3] => unidades.DATAA
+decenas[0] <= LessThan0.DB_MAX_OUTPUT_PORT_TYPE
+decenas[1] <= <GND>
+decenas[2] <= <GND>
+decenas[3] <= <GND>
+unidades[0] <= mag[0].DB_MAX_OUTPUT_PORT_TYPE
+unidades[1] <= unidades.DB_MAX_OUTPUT_PORT_TYPE
+unidades[2] <= unidades.DB_MAX_OUTPUT_PORT_TYPE
+unidades[3] <= unidades.DB_MAX_OUTPUT_PORT_TYPE
+
+
+|top_calculadora|bcd_7s:u_disp_unidades
+digito[0] => seg.IN1
+digito[0] => seg.IN1
+digito[0] => seg.IN0
+digito[0] => seg.IN1
+digito[0] => seg.IN1
+digito[0] => seg.IN1
+digito[0] => seg.IN1
+digito[0] => seg.IN1
+digito[0] => seg.IN1
+digito[1] => seg.IN0
+digito[1] => seg.IN0
+digito[1] => seg.IN1
+digito[1] => seg.IN1
+digito[1] => seg.IN0
+digito[2] => seg.IN1
+digito[2] => seg.IN1
+digito[2] => seg.IN0
+digito[2] => seg.IN1
+digito[3] => seg.IN1
+seg[0] <= seg.DB_MAX_OUTPUT_PORT_TYPE
+seg[1] <= seg.DB_MAX_OUTPUT_PORT_TYPE
+seg[2] <= seg.DB_MAX_OUTPUT_PORT_TYPE
+seg[3] <= seg.DB_MAX_OUTPUT_PORT_TYPE
+seg[4] <= seg.DB_MAX_OUTPUT_PORT_TYPE
+seg[5] <= seg.DB_MAX_OUTPUT_PORT_TYPE
+seg[6] <= seg.DB_MAX_OUTPUT_PORT_TYPE
+
+
+|top_calculadora|bcd_7s:u_disp_decenas
+digito[0] => seg.IN1
+digito[0] => seg.IN1
+digito[0] => seg.IN0
+digito[0] => seg.IN1
+digito[0] => seg.IN1
+digito[0] => seg.IN1
+digito[0] => seg.IN1
+digito[0] => seg.IN1
+digito[0] => seg.IN1
+digito[1] => seg.IN0
+digito[1] => seg.IN0
+digito[1] => seg.IN1
+digito[1] => seg.IN1
+digito[1] => seg.IN0
+digito[2] => seg.IN1
+digito[2] => seg.IN1
+digito[2] => seg.IN0
+digito[2] => seg.IN1
+digito[3] => seg.IN1
+seg[0] <= seg.DB_MAX_OUTPUT_PORT_TYPE
+seg[1] <= seg.DB_MAX_OUTPUT_PORT_TYPE
+seg[2] <= seg.DB_MAX_OUTPUT_PORT_TYPE
+seg[3] <= seg.DB_MAX_OUTPUT_PORT_TYPE
+seg[4] <= seg.DB_MAX_OUTPUT_PORT_TYPE
+seg[5] <= seg.DB_MAX_OUTPUT_PORT_TYPE
+seg[6] <= seg.DB_MAX_OUTPUT_PORT_TYPE
+
+

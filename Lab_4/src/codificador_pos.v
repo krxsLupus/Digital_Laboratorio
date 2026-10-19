@@ -10,6 +10,7 @@ module codificador_pos #(
     localparam integer T_MAX = CLK_FREQ / 500;             
     localparam integer PASO  = (T_MAX - T_MIN) / 15;      
 
-    assign t_on = (pos == 4'd15) ? T_MAX : (T_MIN + pos * PASO);
+    wire [31:0] t_on_full = (pos == 4'd15) ? T_MAX : (T_MIN + pos * PASO);
+    assign t_on = t_on_full[W-1:0];
 
 endmodule

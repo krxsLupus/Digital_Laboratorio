@@ -9,8 +9,8 @@ module generador_PWM #(
 );
 
     localparam PERIODO     = CLK_FREQ / 50;        // Cuentas para 20 ms (1/50 seg)
-    localparam TON_MIN     = CLK_FREQ / 1000;      // Cuentas para 1 ms (1/1000 seg)
-    localparam TON_MAX     = CLK_FREQ / 500;       // Cuentas para 2 ms (1/500 seg)
+    localparam TON_MIN     = CLK_FREQ / 2000;      // Cuentas para 1 ms (1/1000 seg)
+    localparam TON_MAX     = CLK_FREQ / 400;       // Cuentas para 2 ms (1/500 seg)
     localparam PASO        = (TON_MAX - TON_MIN) / 15; // Incremento por cada paso de sw
 
     reg [19:0] contador_periodo;
@@ -18,7 +18,7 @@ module generador_PWM #(
 
 
     always @(posedge clk) begin
-        if (rst) begin
+        if (!rst) begin
             contador_periodo <= 20'd0;  // Si rst = '1' el contador vuelve a 0
         end else begin
             if (contador_periodo >= PERIODO - 1)
@@ -29,8 +29,7 @@ module generador_PWM #(
     end
 
     // Mapeo de sw[3:0] a tiempo en alto (cuentas)
-    assign t_on = TON_MIN + (sw * PASO);
-
+	 assign t_on = TON_MIN[19:0] + (sw * PASO[19:0]);
     // Comparador PWM
     assign servo_pwm = (contador_periodo < t_on);
 

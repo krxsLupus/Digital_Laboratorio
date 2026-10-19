@@ -21,6 +21,7 @@ module bin_bcd_8bit(
                      (resto >= 8'd20) ? 4'd2 :
                      (resto >= 8'd10) ? 4'd1 : 4'd0;
 
-    assign unidades = (resto - (decenas * 8'd10));
+    wire [7:0] unidades_full = resto - (decenas * 8'd10);
+    assign unidades = unidades_full[3:0];
 
 endmodule

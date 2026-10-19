@@ -4,7 +4,7 @@ JedecChain;
 	DefaultMfr(6E);
 
 	P ActionCode(Cfg)
-		Device PartName(EP4CE6) Path("C:/Users/Admin/Documents/GitHub/Digital_Laboratorio/Lab_4/output_files/") File("output_file.jic") MfrSpec(OpMask(1) SEC_Device(EPCS16) Child_OpMask(1 1));
+		Device PartName(EP4CE6E22) Path("C:/Users/Admin/Documents/GitHub/Digital_Laboratorio/Lab_4/output_files/") File("Lab_4.sof") MfrSpec(OpMask(1));
 
 ChainEnd;
 

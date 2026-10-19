@@ -2,45 +2,54 @@ module servo_top #(
     parameter CLK_FREQ = 50_000_000
 )(
     input  wire       clk,
-    input  wire       rst,
-    input  wire [3:0] sw,
-    output wire servo_pwm,
-	 output reg  [6:0] seg,
-	 output reg  [3:0] dig
+    input  wire       rst,       // Pin 90
+    input  wire [3:0] sw,        // Pines 64, 60, 59, 58
+    output wire       servo_pwm, // Pin 49
+    output reg  [6:0] seg,       // Pines 119 al 127
+    output reg  [3:0] dig        // Pines 128, 129, 132, 133
 );
 
-    // Sincronizadores 
-    reg [3:0] sw_s1  = 4'd0;
-    reg [3:0] sw_s2  = 4'd0;
-    reg       rst_s1 = 1'b1;
-    reg       rst_s2 = 1'b1;
+    // =====================
+    // 1. LÓGICA DEL MOTOR
+    // =====================
+    localparam PERIODO     = CLK_FREQ / 50;        // 20 ms
+    localparam TON_MIN     = CLK_FREQ / 1000;      // 1 ms
+    localparam TON_MAX     = CLK_FREQ / 500;       // 2 ms
+    localparam PASO        = (TON_MAX - TON_MIN) / 15; 
+
+    reg [19:0] contador_periodo = 20'd0;
+    wire [19:0] t_on;
 
     always @(posedge clk) begin
-        sw_s1  <= sw;
-        sw_s2  <= sw_s1;
-        rst_s1 <= rst;
-        rst_s2 <= rst_s1;
+        if (!rst) begin
+            contador_periodo <= 20'd0;
+        end else begin
+            if (contador_periodo >= PERIODO - 1)
+                contador_periodo <= 20'd0;
+            else
+                contador_periodo <= contador_periodo + 1'b1;
+        end
     end
 
-    pwm_servo #(.CLK_FREQ(CLK_FREQ)) u_pwm (
-        .clk(clk),
-        .rst(~rst_s2),
-        .pos(sw_s2),
-        .pwm(servo_pwm)
-    );
-	 
-	 
-    wire [7:0] angulo = sw_s2 * 8'd12;
+    assign t_on = TON_MIN + (sw * PASO);
+    assign servo_pwm = (contador_periodo < t_on);
+
+
+    // ==================
+    // 2. Switch a Ánguloy
+    // ==================
+    wire [7:0] angulo = sw * 8'd12; // 0-15 ---> 0-180
     wire [3:0] centenas, decenas, unidades;
     wire [6:0] seg_c, seg_d, seg_u;
 
+    // modulos display
     bin_bcd_8bit u_bcd_conv (
         .bin(angulo),
         .centenas(centenas),
         .decenas(decenas),
         .unidades(unidades)
     );
-	 
+     
     bcd_7s u_disp_c (.digito(centenas), .seg(seg_c));
     bcd_7s u_disp_d (.digito(decenas),  .seg(seg_d));
     bcd_7s u_disp_u (.digito(unidades), .seg(seg_u));
