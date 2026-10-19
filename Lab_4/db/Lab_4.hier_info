@@ -65,18 +65,18 @@ sw[2] => Add2.IN5
 sw[3] => Mult0.IN12
 sw[3] => Add2.IN2
 sw[3] => Add2.IN3
-servo_pwm <= LessThan1.DB_MAX_OUTPUT_PORT_TYPE
-seg[0] <= Mux6.DB_MAX_OUTPUT_PORT_TYPE
-seg[1] <= Mux5.DB_MAX_OUTPUT_PORT_TYPE
-seg[2] <= Mux4.DB_MAX_OUTPUT_PORT_TYPE
-seg[3] <= Mux3.DB_MAX_OUTPUT_PORT_TYPE
-seg[4] <= Mux2.DB_MAX_OUTPUT_PORT_TYPE
-seg[5] <= Mux1.DB_MAX_OUTPUT_PORT_TYPE
-seg[6] <= Mux0.DB_MAX_OUTPUT_PORT_TYPE
-dig[0] <= Decoder0.DB_MAX_OUTPUT_PORT_TYPE
-dig[1] <= Decoder0.DB_MAX_OUTPUT_PORT_TYPE
-dig[2] <= Decoder0.DB_MAX_OUTPUT_PORT_TYPE
-dig[3] <= <VCC>
+servo_pwm << LessThan1.DB_MAX_OUTPUT_PORT_TYPE
+seg[0] << Mux6.DB_MAX_OUTPUT_PORT_TYPE
+seg[1] << Mux5.DB_MAX_OUTPUT_PORT_TYPE
+seg[2] << Mux4.DB_MAX_OUTPUT_PORT_TYPE
+seg[3] << Mux3.DB_MAX_OUTPUT_PORT_TYPE
+seg[4] << Mux2.DB_MAX_OUTPUT_PORT_TYPE
+seg[5] << Mux1.DB_MAX_OUTPUT_PORT_TYPE
+seg[6] << Mux0.DB_MAX_OUTPUT_PORT_TYPE
+dig[0] << Decoder0.DB_MAX_OUTPUT_PORT_TYPE
+dig[1] << Decoder0.DB_MAX_OUTPUT_PORT_TYPE
+dig[2] << Decoder0.DB_MAX_OUTPUT_PORT_TYPE
+dig[3] << <VCC>
 
 
 |servo_top|bin_bcd_8bit:u_bcd_conv
