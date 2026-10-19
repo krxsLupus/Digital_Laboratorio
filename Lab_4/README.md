@@ -1,14 +1,14 @@
 # Generador PWM para servomotor (`generador_PWM`)
 
-Módulo en Verilog que genera la señal PWM de control de un servomotor tipo hobby (SG90 o similar) a partir de un selector de 4 bits. La posición se elige con `sw[3:0]` (16 posiciones) y el módulo entrega un pulso de **1 ms a 2 ms** dentro de un periodo fijo de **20 ms (50 Hz)**.
+Módulo en Verilog que genera la señal PWM de control de un servomotor MG996R a partir de un selector de 4 bits. La posición se elige con `sw[3:0]` (16 posiciones) y el módulo entrega un pulso de **1 ms a 2 ms** dentro de un periodo fijo de **20 ms (50 Hz)**.
 
 ## Archivos
 
 | Archivo | Descripción |
 |---|---|
 | `generador_PWM.v` | Módulo de diseño (DUT) |
-| `generador_PWM_tb.v` | Testbench |
-| `wave.do` | Script de ModelSim/Questa para visualizar las señales del testbench |
+| `generador_PWM_tb.v` | Testbench |<img width="1920" height="1080" alt="generador" src="https://github.com/user-attachments/assets/ab8d014d-0789-4d6d-b8a1-52ce4dfab321" />
+
 
 ## Interfaz
 
@@ -85,53 +85,22 @@ Durante el reset el contador vale 0, así que `servo_pwm` ya está en alto desde
 
 El testbench imprime mensajes con `$display` al liberar el reset, en cada cambio de `sw` y al terminar.
 
-### Cómo ejecutarla
-
-**ModelSim / Questa**
-
-```tcl
-vlib work
-vlog generador_PWM.v generador_PWM_tb.v
-vsim -voptargs=+acc work.generador_PWM_tb
-do wave.do
-run -all
-```
-
-**Icarus Verilog + GTKWave**
-
-```bash
-iverilog -o pwm_sim generador_PWM.v generador_PWM_tb.v
-vvp pwm_sim
-gtkwave generador_PWM_tb.vcd
-```
-
-> El archivo `.vcd` puede ser grande, porque el reloj de 50 MHz genera millones de eventos en 66 ms. Si solo se necesita `servo_pwm`, se puede limitar `$dumpvars` a esa señal.
-
-### Señales en `wave.do`
-
-`wave.do` agrupa las señales así: entradas del testbench (`clk`, `rst`, `sw`), internas del DUT (`contador_periodo` en forma numérica y analógica tipo diente de sierra, y `t_on`) y la salida `servo_pwm`. También deja cursores en 100 ns (inicio de `sw = 0`), 22 ms (`sw = 8`) y 44 ms (`sw = 15`), y abre con la vista completa de la simulación.
-
 ### Resultados
 
 Vista completa (0 – 66 ms), con los tres anchos de pulso:
 
-![Simulación completa](imagenes/wave_completa.png)
+<img width="1920" height="1080" alt="generador" src="https://github.com/user-attachments/assets/c55e2c6c-0b61-438a-94ac-8d719a743d4d" />
 
 Detalle del pulso con `sw = 0` (1 ms de 20 ms):
 
-![sw = 0](imagenes/wave_sw0.png)
+<img width="1920" height="1080" alt="Pulso_pos0" src="https://github.com/user-attachments/assets/b6c254fc-3a37-4129-9fa7-79e64cb15356" />
 
 Detalle del pulso con `sw = 8` (≈ 1,53 ms):
 
-![sw = 8](imagenes/wave_sw8.png)
+<img width="1920" height="1080" alt="pulso_pos8" src="https://github.com/user-attachments/assets/0b5db23c-b497-420e-a800-ecd4f4f9d7e7" />
 
 Detalle del pulso con `sw = 15` (≈ 2 ms):
 
-![sw = 15](imagenes/wave_sw15.png)
+<img width="1920" height="1080" alt="pulso_pos15" src="https://github.com/user-attachments/assets/7c436c8e-f343-4bb9-8e05-070d1c943f49" />
 
 Con los cursores se puede medir el ancho de cada pulso y comprobar que coincide con la tabla de posiciones.
-
-## Notas de uso
-
-- Para otro reloj, por ejemplo 100 MHz, basta con instanciar el módulo con `.CLK_FREQ(100_000_000)`. Si `PERIODO` supera 1 048 575 (2^20 − 1), hay que ampliar el ancho de `contador_periodo` y `t_on`. A 50 MHz no es necesario.
-- La salida `servo_pwm` es combinacional (comparador sobre registros), por lo que puede tener glitches si `sw` cambia justo en el instante de comparación. Si los switches son físicos, conviene sincronizarlos y filtrar el rebote antes de conectarlos a `sw`.
