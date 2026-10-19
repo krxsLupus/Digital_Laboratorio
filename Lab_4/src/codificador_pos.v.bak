@@ -1,0 +1,17 @@
+// Codificador 4 bits -> ciclos de reloj (Parte 1)
+// pos = 0  -> 1 ms en alto;  pos = 15 -> 2 ms en alto.
+module codificador_pos #(
+    parameter CLK_FREQ = 50_000_000,   // Hz
+    parameter W        = 20            // ancho de t_on (= ancho del contador de periodo)
+)(
+    input  wire [3:0]   pos,
+    output wire [W-1:0] t_on           // tiempo en alto, en ciclos de reloj
+);
+
+    localparam integer T_MIN = CLK_FREQ / 1000;            // 1 ms en ciclos
+    localparam integer T_MAX = CLK_FREQ / 500;             // 2 ms en ciclos
+    localparam integer PASO  = (T_MAX - T_MIN) / 15;       // ciclos por unidad de pos
+
+    assign t_on = (pos == 4'd15) ? T_MAX : (T_MIN + pos * PASO);
+
+endmodule

@@ -1,0 +1,68 @@
+`timescale 1ns/1ps
+
+module tb_servo_pwm;
+
+    // Reloj reducido para simular rapido: 1 MHz -> periodo de reloj = 1000 ns
+    localparam integer CLK_FREQ = 1_000_000;
+    localparam integer T_CLK    = 1_000_000_000 / CLK_FREQ;
+
+    localparam integer T_MIN = CLK_FREQ / 1000;
+    localparam integer T_MAX = CLK_FREQ / 500;
+    localparam integer PASO  = (T_MAX - T_MIN) / 15;
+    localparam integer T_PERIODO_NS = 20_000_000;      // 20 ms
+
+    reg        clk = 1'b0;
+    reg        rst = 1'b1;
+    reg  [3:0] sw  = 4'd0;
+    wire       servo_pwm;
+
+    servo_top #(.CLK_FREQ(CLK_FREQ)) dut (
+        .clk(clk), .rst(rst), .sw(sw), .servo_pwm(servo_pwm)
+    );
+
+    always #(T_CLK/2) clk = ~clk;
+
+    // Medicion de periodo y ancho de pulso
+    integer t_rise = 0, ancho_ns = 0, periodo_ns = 0;
+    always @(posedge servo_pwm) begin
+        periodo_ns = $time - t_rise;
+        t_rise     = $time;
+    end
+    always @(negedge servo_pwm) ancho_ns = $time - t_rise;
+
+    integer errores = 0;
+
+    task probar(input [3:0] p, input integer ciclos_esperados);
+        begin
+            sw = p;
+            #(3 * T_PERIODO_NS);                      // esperar 3 periodos
+            if (ancho_ns !== ciclos_esperados * T_CLK || periodo_ns !== T_PERIODO_NS) begin
+                $display("FALLO pos=%0d: ancho=%0d ns (esp. %0d), periodo=%0d ns (esp. %0d)",
+                         p, ancho_ns, ciclos_esperados * T_CLK, periodo_ns, T_PERIODO_NS);
+                errores = errores + 1;
+            end else
+                $display("OK    pos=%2d: ancho=%0d ns (%0d ciclos), periodo=%0d ns",
+                         p, ancho_ns, ancho_ns / T_CLK, periodo_ns);
+        end
+    endtask
+
+    integer i;
+    initial begin
+        $dumpfile("servo.vcd"); $dumpvars(0, tb_servo_pwm);
+        #(10 * T_CLK) rst = 1'b0;
+
+        // Valores de la tabla de calculos, escritos a mano
+        probar(4'd0,  1000);      // 1 ms
+        probar(4'd7,  1462);      // 1 ms + 7*66 ciclos
+        probar(4'd15, 2000);      // 2 ms
+
+        // Las 16 posiciones contra la formula
+        for (i = 0; i < 16; i = i + 1)
+            probar(i[3:0], (i == 15) ? T_MAX : T_MIN + i * PASO);
+
+        if (errores == 0) $display("TODAS LAS PRUEBAS OK");
+        else              $display("ERRORES: %0d", errores);
+        $finish;
+    end
+
+endmodule

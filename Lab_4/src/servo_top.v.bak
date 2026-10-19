@@ -1,0 +1,29 @@
+// Top de la Parte 1: sw[3:0] -> posicion del servo.
+// Si los switches o el boton de reset de la tarjeta son activos en bajo,
+// invertir aqui (por ejemplo: .rst(~rst_n)).
+module servo_top #(
+    parameter CLK_FREQ = 50_000_000
+)(
+    input  wire       clk,
+    input  wire       rst,
+    input  wire [3:0] sw,
+    output wire       servo_pwm
+);
+
+    // Sincronizadores de dos flip-flops para entradas externas
+    reg [3:0] sw_s1  = 4'd0, sw_s2  = 4'd0;
+    reg       rst_s1 = 1'b1, rst_s2 = 1'b1;
+
+    always @(posedge clk) begin
+        sw_s1  <= sw;   sw_s2  <= sw_s1;
+        rst_s1 <= rst;  rst_s2 <= rst_s1;
+    end
+
+    pwm_servo #(.CLK_FREQ(CLK_FREQ)) u_pwm (
+        .clk(clk),
+        .rst(rst_s2),
+        .pos(sw_s2),
+        .pwm(servo_pwm)
+    );
+
+endmodule

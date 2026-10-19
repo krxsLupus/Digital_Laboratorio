@@ -1,0 +1,1 @@
+Warning (10268): Verilog HDL information at tb_teclado.v(52): always construct contains both blocking and non-blocking assignments File: C:/Users/Admin/Documents/GitHub/Digital_Laboratorio/Lab_4/testbench/tb_teclado.v Line: 52

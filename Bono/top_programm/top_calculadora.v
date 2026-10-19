@@ -6,7 +6,7 @@ module top_calculadora (
     input wire btn_AmB,    // K3 (PIN_91): A - B
     input wire btn_nApB,   // K4 (PIN_87): -A + B
     input wire btn_nAmB,   // K5 (PIN_86): -A - B
-    output reg [6:0] seg,pues 
+    output reg [6:0] seg, 
     output reg [3:0] dig,
     output wire led_signo
 );

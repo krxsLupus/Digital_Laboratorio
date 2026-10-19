@@ -19,12 +19,20 @@
 #
 # Quartus Prime
 # Version 25.1std.0 Build 1129 10/21/2025 SC Lite Edition
+<<<<<<< Updated upstream
 # Date created = 19:41:52  October 18, 2026
+=======
+# Date created = 19:15:04  October 18, 2026
+>>>>>>> Stashed changes
 #
 # -------------------------------------------------------------------------- #
 
 QUARTUS_VERSION = "25.1"
+<<<<<<< Updated upstream
 DATE = "19:41:52  October 18, 2026"
+=======
+DATE = "19:15:04  October 18, 2026"
+>>>>>>> Stashed changes
 
 # Revisions
 

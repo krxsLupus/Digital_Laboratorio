@@ -1,0 +1,85 @@
+`timescale 1ns/1ps
+
+module tb_teclado;
+
+    localparam integer CLK_FREQ  = 100_000;            // reloj reducido: 10 us por ciclo
+    localparam integer T_CLK     = 1_000_000_000 / CLK_FREQ;
+    localparam integer T_REBOTE  = 700_000;            // 0.7 ms
+    localparam integer T_PRESION = 40_000_000;         // 40 ms (> debounce)
+    localparam integer T_SOLTAR  = 40_000_000;
+
+    reg clk = 1'b0, rst = 1'b1;
+    always #(T_CLK/2) clk = ~clk;
+
+    // Modelo del teclado (material de apoyo de la guia)
+    reg        presionada = 1'b0;
+    reg  [1:0] f, c;
+    wire [3:0] rows;
+    wire [3:0] cols = (presionada && rows[f] === 1'b0) ? ~(4'b0001 << c) : 4'b1111;
+
+    wire [3:0] key_code;
+    wire       key_valid;
+
+    teclado #(.CLK_FREQ(CLK_FREQ)) dut (
+        .clk(clk), .rst(rst), .cols(cols), .rows(rows),
+        .key_code(key_code), .key_valid(key_valid)
+    );
+
+    task presionar(input [1:0] fila, input [1:0] col);
+        integer i;
+        begin
+            f = fila; c = col;
+            for (i = 0; i < 5; i = i + 1) begin
+                presionada = 1'b1; #(T_REBOTE);
+                presionada = 1'b0; #(T_REBOTE);
+            end
+            presionada = 1'b1; #(T_PRESION);
+            presionada = 1'b0; #(T_SOLTAR);
+        end
+    endtask
+
+    // Valor esperado por posicion {fila, columna}
+    reg [3:0] esperado [0:15];
+    initial begin
+        esperado[0]  = 1;  esperado[1]  = 2;  esperado[2]  = 3;  esperado[3]  = 10;
+        esperado[4]  = 4;  esperado[5]  = 5;  esperado[6]  = 6;  esperado[7]  = 11;
+        esperado[8]  = 7;  esperado[9]  = 8;  esperado[10] = 9;  esperado[11] = 12;
+        esperado[12] = 14; esperado[13] = 0;  esperado[14] = 15; esperado[15] = 13;
+    end
+
+    // Monitores
+    integer pulsos = 0, errores = 0;
+    reg [3:0] ultimo = 4'hx;
+    reg       kv_ant = 1'b0;
+    always @(posedge clk) begin
+        kv_ant <= key_valid;
+        if (key_valid) begin pulsos = pulsos + 1; ultimo = key_code; end
+        if (key_valid && kv_ant) begin
+            $display("FALLO: key_valid dura mas de un ciclo");
+            errores = errores + 1;
+        end
+    end
+
+    integer k, previos;
+    initial begin
+        $dumpfile("teclado.vcd"); $dumpvars(0, tb_teclado);
+        #(10 * T_CLK) rst = 1'b0;
+        #(5_000_000);
+
+        for (k = 0; k < 16; k = k + 1) begin
+            previos = pulsos;
+            presionar(k[3:2], k[1:0]);
+            if (pulsos != previos + 1 || ultimo !== esperado[k]) begin
+                $display("FALLO fila=%0d col=%0d: pulsos=%0d (esp. %0d), codigo=%0d (esp. %0d)",
+                         k[3:2], k[1:0], pulsos - previos, 1, ultimo, esperado[k]);
+                errores = errores + 1;
+            end else
+                $display("OK    fila=%0d col=%0d -> key_code=%0d", k[3:2], k[1:0], ultimo);
+        end
+
+        if (errores == 0 && pulsos == 16) $display("TODAS LAS PRUEBAS OK (16 teclas, 16 pulsos)");
+        else                              $display("ERRORES: %0d, pulsos=%0d", errores, pulsos);
+        $finish;
+    end
+
+endmodule
