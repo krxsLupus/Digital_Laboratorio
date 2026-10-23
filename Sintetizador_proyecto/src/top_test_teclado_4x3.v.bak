@@ -1,0 +1,51 @@
+// Prueba de conexión del teclado matricial 4x3 (estilo telefónico).
+// Reutiliza teclado_4x3.v (probado en tb_teclado_4x3.v: 12/12 teclas OK)
+// y bcd_7s.v (ya probado en Lab 3 y Lab 4).
+//
+// Al presionar una tecla, el dígito 0 del display debe cambiar. Para las
+// teclas 0-9 el display va a mostrar el dígito correcto. Para '*' y '#'
+// (key_code 10 y 11) va a mostrar un patrón sin sentido, porque bcd_7s.v
+// solo decodifica BCD (0-9); eso es normal, no indica una falla.
+//
+// Pendiente antes de programar la FPGA:
+// 1. Agregar al .qsf las asignaciones de pin para clk, rst, cols, rows,
+//    seg y dig con los números de pin reales de la tarjeta.
+// 2. Activar el pull-up interno en las 3 entradas de columna (o poner
+//    resistencias externas de 10k a 3.3V si prefieren esa vía):
+//      set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to cols_tec[0]
+//      set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to cols_tec[1]
+//      set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to cols_tec[2]
+// 3. 'rst' es activo en alto; invertir si el botón físico es activo en bajo.
+
+module top_test_teclado_4x3 (
+    input  wire       clk,       // 50 MHz
+    input  wire       rst,       // activo en alto
+    input  wire [2:0] cols_tec,  // entrada: columnas del teclado
+    output wire [3:0] rows_tec,  // salida: filas del teclado
+    output wire [6:0] seg,       // segmentos del display (dígito 0)
+    output wire [3:0] dig        // habilitador de dígitos (solo dig[0] activo)
+);
+
+    wire [3:0] key_code;
+    wire       key_valid;
+
+    teclado_4x3 #(
+        .CLK_FREQ(50_000_000),
+        .DEB_MS(10)
+    ) u_teclado (
+        .clk       (clk),
+        .rst       (rst),
+        .cols      (cols_tec),
+        .rows      (rows_tec),
+        .key_code  (key_code),
+        .key_valid (key_valid)
+    );
+
+    bcd_7s u_disp (
+        .digito (key_code),
+        .seg    (seg)
+    );
+
+    assign dig = 4'b1110; // un solo dígito activo; ajustar polaridad si hace falta
+
+endmodule
