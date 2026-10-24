@@ -1,13 +1,6 @@
-# Asignaciones de pines - Slave: REMIX (placa 21eda, Cyclone IV EP4CE6E22)
-# Uso: con el proyecto abierto en Quartus, Tools > Tcl Scripts (o la consola Tcl):
-#   source pines_sintetizador.tcl
-# Luego revisa el Pin Planner y recompila.
+# Asignaciones de pines - Slave: REMIX (placa 21eda, Cyclone IV EP4CE1'E22)
 
-# ---------------------------------------------------------------
-# 1. Dispositivo (opcional): la placa trae EP4CE6E22C8N
-#    (o EP4CE10E22C8N, segun el chip). Descomenta la linea que corresponda.
-# ---------------------------------------------------------------
-# set_global_assignment -name DEVICE EP4CE6E22C8
+set_global_assignment -name DEVICE EP4CE10E22C8
 
 # ---------------------------------------------------------------
 # 2. Estandar de I/O: los bancos de la placa se alimentan a 3.3 V
