@@ -13,6 +13,7 @@ module top_sintetizador (
     input  wire       env_b,     // encoder de parametros ADSR DT
     input  wire       env_btn,   // pulsador: elige el parametro (A, D, S, R)
     output wire [3:0] led_sel,   // LED del parametro elegido (activo en alto)
+    input  wire       pedal,     // pedal de sustain: interruptor SW1 del DIP (abajo = ON con pull-up)
     output wire       i2s_bclk,  // al pin BCLK del MAX98357A
     output wire       i2s_lrclk, // al pin LRC  del MAX98357A
     output wire       i2s_din,   // al pin DIN  del MAX98357A
@@ -50,6 +51,19 @@ module top_sintetizador (
         .sel_onda (sel_onda)
     );
 
+    // 2a. Pedal de sustain: mantiene las notas aunque se suelte la tecla.
+    //     'gate' (no 'teclas') es lo que ve la envolvente de cada voz.
+    //     ACTIVO_BAJO = 1: el interruptor del DIP da 0 al cerrarse (pull-up de 4.7 kohm en la placa).
+    wire [11:0] gate;
+
+    pedal_sustain #(.ACTIVO_BAJO(1)) u_pedal (
+        .clk    (clk),
+        .rst    (rst_h),
+        .pedal  (pedal),
+        .teclas (teclas),
+        .gate   (gate)
+    );
+
     // 2b. Parametros ADSR: un encoder + un pulsador (ver ctrl_adsr)
     wire [3:0] a_idx, d_idx, s_idx, r_idx;
     wire [1:0] sel_par;
@@ -78,7 +92,7 @@ module top_sintetizador (
     banco_notas u_banco (
         .clk      (clk),
         .rst      (rst_h),
-        .teclas   (teclas),
+        .teclas   (gate),
         .sel_onda (sel_onda),
         .a_idx    (a_idx),
         .d_idx    (d_idx),
