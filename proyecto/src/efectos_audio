@@ -1,0 +1,65 @@
+module efectos_audio (
+    input  wire        clk,
+    input  wire        rst,
+    input  wire        en_48k,     // Tick a 48.8 kHz desde salida_i2s
+    input  wire signed [15:0] x,   // Señal seca a 48.8 kHz
+    input  wire [3:0]  eco_t,
+    input  wire [3:0]  eco_fb,
+    input  wire [3:0]  eco_mix,
+    output reg  signed [15:0] y    // Salida mixta final a 48.8 kHz
+);
+
+    reg paridad = 1'b0;
+    reg signed [15:0] x_prev;
+    reg signed [15:0] x_decimado;
+    wire en_24k = (en_48k && paridad);
+
+    // Conexión del Eco
+    wire signed [15:0] wet_eco;
+    eco u_eco (
+        .clk(clk),
+        .rst(rst),
+        .en_24k(en_24k),
+        .x(x_decimado),
+        .t_idx(eco_t),
+        .fb_idx(eco_fb),
+        .mix_idx(eco_mix),
+        .wet(wet_eco)
+    );
+
+    reg signed [15:0] wet_prev;
+    reg signed [15:0] wet_actual;
+    wire signed [15:0] wet_interpolado = (wet_prev + wet_actual) >>> 1;
+
+    always @(posedge clk) begin
+        if (rst) begin
+            paridad <= 1'b0;
+            x_prev <= 16'd0;
+            y <= 16'd0;
+        end else if (en_48k) begin
+            paridad <= ~paridad;
+            
+            if (!paridad) begin
+                // Fase 1: Guardar la muestra impar
+                x_prev <= x;
+                // Entregar el wet puro del cálculo anterior
+                y <= sat16(x + wet_actual); 
+            end else begin
+                // Fase 2: Promediar, activar eco a 24k, e interpolar
+                x_decimado <= (x + x_prev) >>> 1;
+                wet_prev <= wet_actual;
+                wet_actual <= wet_eco; // Esta actualización ocurre gracias a en_24k
+                
+                y <= sat16(x + wet_interpolado);
+            end
+        end
+    end
+
+    function signed [15:0] sat16 (input signed [17:0] val);
+        begin
+            if (val > 18'sd32767) sat16 = 16'sd32767;
+            else if (val < -18'sd32768) sat16 = -16'sd32768;
+            else sat16 = val[15:0];
+        end
+    endfunction
+endmodule
