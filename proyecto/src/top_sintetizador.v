@@ -1,5 +1,5 @@
 // Top: 12 pulsadores en matriz 4x3 con diodos (polifonico) + encoder KY-040
-// + salida I2S (MAX98357A) + VGA + displays.
+// + salida I2S (MAX98357A) + VGA + displays + Efecto de Eco (Delay).
 module top_sintetizador (
     input  wire       clk,       // 50 MHz
     input  wire       rst,       // boton de reset, activo en bajo
@@ -9,11 +9,12 @@ module top_sintetizador (
     input  wire       pin_b,     // encoder DT
     input  wire       vol_a,     // encoder de volumen CLK
     input  wire       vol_b,     // encoder de volumen DT
-    input  wire       env_a,     // encoder de parametros ADSR CLK
-    input  wire       env_b,     // encoder de parametros ADSR DT
-    input  wire       env_btn,   // pulsador: elige el parametro (A, D, S, R)
-    output wire [3:0] led_sel,   // LED del parametro elegido (activo en alto)
-    input  wire       pedal,     // pedal de sustain: interruptor SW1 del DIP (abajo = ON con pull-up)
+    input  wire       env_a,     // encoder de parametros (ADSR + Eco) CLK
+    input  wire       env_b,     // encoder de parametros (ADSR + Eco) DT
+    input  wire       env_btn,   // pulsador: elige el parametro (A, D, S, R, T, FB, MIX)
+    output wire [7:0] led_sel,   // LED del parametro elegido (activo en alto, 8 bits)
+    input  wire       pedal,     // pedal de sustain: interruptor SW1 del DIP
+    input  wire       sw_eco,    // encender/apagar eco: interruptor SW2 del DIP
     output wire       i2s_bclk,  // al pin BCLK del MAX98357A
     output wire       i2s_lrclk, // al pin LRC  del MAX98357A
     output wire       i2s_din,   // al pin DIN  del MAX98357A
@@ -53,7 +54,6 @@ module top_sintetizador (
 
     // 2a. Pedal de sustain: mantiene las notas aunque se suelte la tecla.
     //     'gate' (no 'teclas') es lo que ve la envolvente de cada voz.
-    //     ACTIVO_BAJO = 1: el interruptor del DIP da 0 al cerrarse (pull-up de 4.7 kohm en la placa).
     wire [11:0] gate;
 
     pedal_sustain #(.ACTIVO_BAJO(1)) u_pedal (
@@ -64,26 +64,29 @@ module top_sintetizador (
         .gate   (gate)
     );
 
-    // 2b. Parametros ADSR: un encoder + un pulsador (ver ctrl_param)
+    // 2b. Parametros ADSR y Eco: un encoder + un pulsador
     wire [3:0] a_idx, d_idx, s_idx, r_idx;
-    wire [1:0] sel_par;
-    wire [3:0] val_par;
+    wire [3:0] eco_t, eco_fb, eco_mix, rev_mix;
+    wire [3:0] val_par; // El valor a mostrar en el display
 
+    // Nueva instancia de ctrl_param (reemplaza a ctrl_adsr)
     ctrl_param #(.ACTIVO_BAJO(1)) u_ctrl_param (
-        .clk   (clk),
-        .rst   (rst_h),
-        .enc_a (env_a),
-        .enc_b (env_b),
-        .btn   (env_btn),
-        .a_idx (a_idx),
-        .d_idx (d_idx),
-        .s_idx (s_idx),
-        .r_idx (r_idx),
-        .sel   (sel_par),
-        .valor (val_par)
+        .clk     (clk),
+        .rst     (rst_h),
+        .enc_a   (env_a),
+        .enc_b   (env_b),
+        .btn     (env_btn),
+        .a_idx   (a_idx),
+        .d_idx   (d_idx),
+        .s_idx   (s_idx),
+        .r_idx   (r_idx),
+        .eco_t   (eco_t),
+        .eco_fb  (eco_fb),
+        .eco_mix (eco_mix),
+        .rev_mix (rev_mix),
+        .led_sel (led_sel), // Ahora de 8 bits
+        .valor   (val_par)
     );
-
-    assign led_sel = 4'b0001 << sel_par;      // si tus LEDs son activos en bajo: ~(4'b0001 << sel_par)
 
     // 3. Banco de 12 voces con mezcla y envolvente ADSR por voz
     wire signed [19:0] suma;
@@ -102,7 +105,7 @@ module top_sintetizador (
         .suma     (suma)
     );
 
-    // 4. Etapa de salida: ganancia por onda, volumen, saturacion e I2S -> MAX98357A
+    // 4. Etapa de salida: ganancia, ADSR, eco a 24k, volumen, saturacion e I2S
     wire [2:0] volumen;
 
     encoder_volumen u_vol (
@@ -113,6 +116,14 @@ module top_sintetizador (
         .nivel (volumen)
     );
 
+    // Sincronizador simple para el switch del Eco (evita metaestabilidad)
+    reg sw_eco_s1, sw_eco_s2;
+    always @(posedge clk) begin
+        sw_eco_s1 <= sw_eco;
+        sw_eco_s2 <= sw_eco_s1;
+    end
+
+    // Instancia actualizada con los puertos de Efectos
     salida_i2s u_audio (
         .clk       (clk),
         .rst       (rst_h),
@@ -120,13 +131,17 @@ module top_sintetizador (
         .activas   (activas),
         .sel_onda  (sel_onda),
         .volumen   (volumen),
+        .eco_t     (eco_t),
+        .eco_fb    (eco_fb),
+        .eco_mix   (eco_mix),
+        .eco_ena   (sw_eco_s2), // Control de bypass por hardware
         .i2s_bclk  (i2s_bclk),
         .i2s_lrclk (i2s_lrclk),
         .i2s_din   (i2s_din)
     );
 
     // 5. Displays: nota mas grave pulsada en el digito 0 (0-9, A = Fa# ... b = Si),
-    //    volumen en el digito 1, parametro ADSR elegido en el digito 2, forma de onda en el digito 3
+    //    volumen en el digito 1, valor de parametro activo en digito 2, onda en digito 3
     reg [3:0] nota_baja;
     always @(*) begin
         casez (teclas)
@@ -171,9 +186,9 @@ module top_sintetizador (
                 digito_mostrar = {1'b0, volumen};
                 seg = seg_decodificado;
             end
-            2'b10: begin                       // digito 2: valor del parametro ADSR elegido (hex)
+            2'b10: begin                       // digito 2: valor del parametro elegido (hex)
                 dig = 4'b1011;
-                digito_mostrar = val_par;
+                digito_mostrar = val_par;      // Viene de ctrl_param
                 seg = seg_decodificado;
             end
             2'b11: begin
