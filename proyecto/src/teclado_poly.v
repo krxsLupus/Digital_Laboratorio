@@ -89,12 +89,13 @@ module teclado_poly #(
         end
     end
 
-    // Antirrebote por tecla: el cambio solo se acepta si la lectura cruda
-    // difiere del estado filtrado durante DEB_SCANS barridos seguidos.
+    // Antirrebote por tecla (Inmediato / Eager Debounce):
+    // Acepta el cambio en el instante en que ocurre (latencia 0)
+    // y luego ignora nuevos cambios (bloqueo) durante DEB_SCANS.
     genvar i;
     generate
         for (i = 0; i < 12; i = i + 1) begin : deb
-            reg               ok = 1'b0;     // estado filtrado de esta tecla
+            reg               ok = 1'b0;
             reg [DEB_W-1:0]   n  = 0;
             assign teclas[i] = ok;
 
@@ -103,13 +104,11 @@ module teclado_poly #(
                     ok <= 1'b0;
                     n  <= 0;
                 end else if (scan_done) begin
-                    if (raw[i] == ok) begin
-                        n <= 0;
-                    end else if (n == DEB_SCANS - 1) begin
-                        ok <= raw[i];
-                        n  <= 0;
-                    end else begin
-                        n <= n + 1'b1;
+                    if (n > 0) begin
+                        n <= n - 1'b1;         // Cuenta regresiva del bloqueo
+                    end else if (raw[i] != ok) begin
+                        ok <= raw[i];          // ¡Acepta el cambio al instante!
+                        n  <= DEB_SCANS - 1;   // Inicia el bloqueo de 5 ms
                     end
                 end
             end
