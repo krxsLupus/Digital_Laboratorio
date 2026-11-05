@@ -9,20 +9,27 @@ module generador_onda(
     // 2. Diente de sierra: Rango completo 0 a 255
     wire [7:0] sierra = fase[31:24];
 
-    // 3. Triangular (Corregida)
+    // 3. Triangular con ganancia (x1.5) y saturación(Corregida)
     // Usamos el MSB (31) para saber si sube o baja.
     // Multiplicamos por 2 desplazando un bit (fase[30:24] << 1) para aprovechar todo el rango.
-    wire [7:0] tri_base = {fase[30:24], 1'b0}; 
+    wire [7:0] tri_base = {fase[30:24], 1'b0}; // Corrige el salto del MSB
     wire [7:0] triangular = (fase[31]) ? ~tri_base : tri_base;
+    wire [8:0] tri_ganancia = triangular + (triangular >> 1); // x1.5
+    wire [7:0] tri_saturada = (tri_ganancia > 9'd255) ? 8'd255 : tri_ganancia[7:0];
     
     // Ganancia Triangular: Multiplicamos por 1.5 aprox y saturamos en 255 para engordarla
     wire [8:0] tri_ganancia = triangular + (triangular >> 1);
     wire [7:0] tri_saturada = (tri_ganancia > 9'd255) ? 8'd255 : tri_ganancia[7:0];
 
-    // 4. Seno
-    wire [5:0] idx_seno = fase[30] ? ~fase[29:24] : fase[29:24];
-    wire [6:0] mag_seno;
-    seno_lut u_seno (.idx(idx_seno), .mag(mag_seno));
+    // 4. Seno con ganancia (x2) y saturación
+    wire [7:0] seno_puro = fase[31] ? (8'd128 - mag_seno) : (8'd128 + mag_seno);
+    wire signed [9:0] seno_centrado = $signed({2'b00, seno_puro}) - 10'sd128;
+    wire signed [9:0] seno_amplificado = seno_centrado <<< 1; // x2
+    wire [7:0] seno_saturado = (seno_amplificado > 10'sd127) ? 8'd255 :
+                           (seno_amplificado < -10'sd128) ? 8'd0 :
+                           $unsigned(seno_amplificado + 10'sd128);
+
+    
     
     // Sumamos al centro (128)
     wire [7:0] seno_puro = fase[31] ? (8'd128 - mag_seno) : (8'd128 + mag_seno);
