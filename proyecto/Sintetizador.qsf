@@ -137,6 +137,49 @@ set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME tb_polifonia -section_id 
 set_global_assignment -name EDA_TEST_BENCH_FILE tb_polifonia.v -section_id tb_polifonia
 set_location_assignment PIN_135 -to vol_a
 set_location_assignment PIN_136 -to vol_b
+
+# ==============================================================================
+# PINES NUEVOS - FASE 1, 2 y 3 (ADSR, Pedal y Efectos)
+# ==============================================================================
+
+# 1. Encoder de Parámetros (ADSR, Eco, Reverb)
+set_location_assignment PIN_71 -to env_a
+set_location_assignment PIN_72 -to env_b
+set_location_assignment PIN_70 -to env_btn
+
+# 2. Interruptores físicos (Sustain y Bypass de Eco)
+set_location_assignment PIN_69 -to pedal
+set_location_assignment PIN_68 -to sw_eco
+
+# 3. LEDs indicadores del parámetro activo (8 LEDs en formato one-hot)
+set_location_assignment PIN_73 -to led_sel[0]
+set_location_assignment PIN_74 -to led_sel[1]
+set_location_assignment PIN_75 -to led_sel[2]
+set_location_assignment PIN_76 -to led_sel[3]
+set_location_assignment PIN_77 -to led_sel[4]
+set_location_assignment PIN_80 -to led_sel[5]
+set_location_assignment PIN_84 -to led_sel[6]
+set_location_assignment PIN_85 -to led_sel[7]
+
+# 4. Estándar de voltaje para los nuevos pines (3.3-V LVTTL)
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to env_a
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to env_b
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to env_btn
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pedal
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to sw_eco
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to led_sel[*]
+
+# 5. Resistencias Pull-Up internas (útiles si env_btn, pedal y sw_eco son botones/switches pasivos hacia GND)
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to env_btn
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to pedal
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to sw_eco
+
+set_global_assignment -name VERILOG_FILE src/envelope_adsr.v
+set_global_assignment -name VERILOG_FILE src/lut_tiempos.v
+set_global_assignment -name VERILOG_FILE src/pedal_sustain.v
+set_global_assignment -name VERILOG_FILE src/ctrl_param.v
+set_global_assignment -name VERILOG_FILE src/eco.v
+set_global_assignment -name VERILOG_FILE src/efectos_audio.v
 set_global_assignment -name SDC_FILE Sintetizador.sdc
 set_global_assignment -name VERILOG_FILE src/acumulador_fase.v
 set_global_assignment -name VERILOG_FILE src/banco_notas.v
