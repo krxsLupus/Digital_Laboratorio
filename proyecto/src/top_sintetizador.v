@@ -64,12 +64,12 @@ module top_sintetizador (
         .gate   (gate)
     );
 
-    // 2b. Parametros ADSR: un encoder + un pulsador (ver ctrl_adsr)
+    // 2b. Parametros ADSR: un encoder + un pulsador (ver ctrl_param)
     wire [3:0] a_idx, d_idx, s_idx, r_idx;
     wire [1:0] sel_par;
     wire [3:0] val_par;
 
-    ctrl_adsr #(.ACTIVO_BAJO(1)) u_ctrl_adsr (
+    ctrl_param #(.ACTIVO_BAJO(1)) u_ctrl_param (
         .clk   (clk),
         .rst   (rst_h),
         .enc_a (env_a),
