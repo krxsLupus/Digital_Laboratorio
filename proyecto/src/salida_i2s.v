@@ -71,8 +71,13 @@ module salida_i2s (
         if (rst)
             mult <= 9'd256;
         else if (tick_fs) begin
-            if (mult < mult_obj)      mult <= mult + 1'b1;
-            else if (mult > mult_obj) mult <= mult - 1'b1;
+            if (mult < mult_obj)      
+                mult <= mult + 1'b1;          // Sube lento (evita pops en colas de release)
+            else if (mult > mult_obj) begin
+                // Baja MUY rápido (pasos de a 8) para hacerle espacio inmediato a los nuevos acordes
+                if (mult - mult_obj > 9'd8) mult <= mult - 4'd8; 
+                else                        mult <= mult_obj;
+            end
         end
     end
 
