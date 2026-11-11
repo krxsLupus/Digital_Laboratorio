@@ -1,0 +1,58 @@
+<internal_error>
+<sub_system>ERR</sub_system>
+<callstack>
+	0x7f82b96c62f6: ccl_err + 0x82f6 (_ZN15ERR_STACKWALKER15get_stack_traceEPPKviiPv + 0x146)
+	0x7f82b96c93c8: ccl_err + 0xb3c8 (_Z14err_terminatorv + 0x5a)
+	0x7f82c90a3b86: jtag_client + 0x38b86 (_ZN10__cxxabiv111__terminateEPFvvE + 0x6)
+	0x7f82c90a3bf1: jtag_client + 0x38bf1
+	0x7f82c90a3d44: jtag_client + 0x38d44
+	0x7f82a9aa072f: stdc++.so.6 + 0xa072f
+	0x7f82a9aa0892: stdc++.so.6 + 0xa0892
+	0x7f829d36433d: ace_acvq_acvqm + 0xe533d (_ZN22ACVQM_OBJECT_INTERFACEC2EP13ACVQM_NETLIST + 0x32d)
+	0x7f829d35c49c: ace_acvq_acvqm + 0xdd49c (_ZN13ACVQM_NETLISTC2Ev + 0x31c)
+	0x7f829d31f6b0: ace_acvq_acvqm + 0xa06b0 (_ZN12ACVQM_LOADER4loadEPP13ACVQM_NETLISTPP10ACVQM_CHIPPP12ACVQM_MAPPERPP13ACVQM_PAINTERP27ACVQM_DETAIL_LEVEL_ENFORCER + 0x130)
+	0x7f829d321970: ace_acvq_acvqm + 0xa2970 (_ZN12ACVQM_LOADER21project_loader_actionEN23ACVQ_MODEL_IFC_FOR_CTRL21PROJECT_LOADER_ACTIONEPP13ACVQM_NETLISTPP10ACVQM_CHIPPP12ACVQM_MAPPERPP13ACVQM_PAINTERP27ACVQM_DETAIL_LEVEL_ENFORCER + 0x1a0)
+	0x7f829d3177ec: ace_acvq_acvqm + 0x987ec (_ZN11ACVQM_MODEL21project_loader_actionEN23ACVQ_MODEL_IFC_FOR_CTRL21PROJECT_LOADER_ACTIONE + 0x2c)
+	0x7f829f060fbf: ace_acvq_acvqc + 0x23fbf (_ZN16ACVQC_CONTROLLER12project_openEb + 0x21)
+	0x7f829f08de94: ace_acvq_acvqc + 0x50e94 (_ZN27ACVQ_CTRL_IFC_FOR_VIEW_IMPL12project_openEv + 0x12)
+	0x7f8299b4368e: ace_acvq_acvqv + 0x6d68e (_ZN15ACVQV_FRAME_WND13setup_projectEv + 0x1e)
+	0x7f82a8f35655: ace_acvq + 0x4655 (_Z19acvq_initialize_allP15ACVQV_FRAME_WNDb + 0x150)
+	0x7f82a8f357ed: ace_acvq + 0x47ed (ace_acvq_create_frame_wnd + 0x9d)
+	0x7f82c98811e3: sys_qui + 0x831e3 (_ZN13QUI_FRAME_MGR16create_frame_wndE17QUI_FW_STATE_ENUMP14QUI_FRAME_INFOb + 0x249)
+	0x7f82c98819a7: sys_qui + 0x839a7 (_ZN13QUI_FRAME_MGR16create_frame_wndEP14QUI_FRAME_INFObb + 0x4a5)
+	0x7f82c988670d: sys_qui + 0x8870d (_ZN13QUI_FRAME_MGR10create_newEP14QUI_FRAME_INFObb + 0x81)
+	0x7f82c98869ad: sys_qui + 0x889ad (_ZN13QUI_FRAME_MGR10create_newERK5_GUIDbb + 0x77)
+	0x7f82c98869f2: sys_qui + 0x889f2 (_Z14qui_create_newRK5_GUIDbb + 0x43)
+	0x7f82c98d0dd3: sys_qui + 0xd2dd3 (_ZN14QUI_TOOLS_MENU11acvq_actionEv + 0x2d)
+	0x7f829f46ea56: resr_oawq + 0x32a56 (_ZN14OAWQ_FRAME_WND13on_click_linkE7QStringb + 0x7aa)
+	0x7f829f48ee7d: resr_oawq + 0x52e7d (_ZN14OAWQ_FRAME_WND15on_link_clickedERK7QString + 0x3e3)
+	0x7f829f48ef80: resr_oawq + 0x52f80 (_ZN14OAWQ_FRAME_WND18qt_static_metacallEP7QObjectN11QMetaObject4CallEiPPv + 0x3a)
+	0x7f82ae4fa859: Qt5Core.so.5 + 0x2fa859 (_ZN7QObject5eventEP6QEvent + 0x2b9)
+	0x7f82af3a29d5: Qt5Widgets.so.5 + 0x1a29d5 (_ZN7QWidget5eventEP6QEvent + 0x225)
+	0x7f82af4b6fb4: Qt5Widgets.so.5 + 0x2b6fb4 (_ZN11QMainWindow5eventEP6QEvent + 0x64)
+	0x7f82af36288f: Qt5Widgets.so.5 + 0x16288f (_ZN19QApplicationPrivate13notify_helperEP7QObjectP6QEvent + 0x7f)
+	0x7f82af36b550: Qt5Widgets.so.5 + 0x16b550 (_ZN12QApplication6notifyEP7QObjectP6QEvent + 0x1a0)
+	0x7f82ae4cdf1a: Qt5Core.so.5 + 0x2cdf1a (_ZN16QCoreApplication15notifyInternal2EP7QObjectP6QEvent + 0x12a)
+	0x7f82ae4d0791: Qt5Core.so.5 + 0x2d0791 (_ZN23QCoreApplicationPrivate16sendPostedEventsEP7QObjectiP11QThreadData + 0x171)
+	0x7f82ae523d6a: Qt5Core.so.5 + 0x323d6a (_ZN20QEventDispatcherUNIX13processEventsE6QFlagsIN10QEventLoop17ProcessEventsFlagEE + 0x4a)
+	0x7f82ad52d9fe: Qt5XcbQpa.so.5 + 0x689fe (_ZN23QXcbUnixEventDispatcher13processEventsE6QFlagsIN10QEventLoop17ProcessEventsFlagEE + 0xe)
+	0x7f82ae4ccaeb: Qt5Core.so.5 + 0x2ccaeb (_ZN10QEventLoop4execE6QFlagsINS_17ProcessEventsFlagEE + 0x12b)
+	0x7f82ae4d4a00: Qt5Core.so.5 + 0x2d4a00 (_ZN16QCoreApplication4execEv + 0x90)
+	0x5623526a107b: quartus + 0x207b (_Z8qgq_mainiPPKc + 0x7b)
+	0x7f82ba14c5c0: ccl_msg + 0x3e5c0 (_Z15msg_main_threadPv + 0x10)
+	0x7f82b968ecac: ccl_thr + 0x5cac (thr_final_wrapper + 0xc)
+	0x7f82ba14c68a: ccl_msg + 0x3e68a (_Z18msg_thread_wrapperPFPvS_ES_ + 0x6e)
+	0x7f82b96f9096: ccl_mem + 0xc096 (_Z18mem_thread_wrapperPFPvS_ES_ + 0x96)
+	0x7f82b96c71a8: ccl_err + 0x91a8 (_Z18err_thread_wrapperPFPvS_ES_ + 0x27)
+	0x7f82b968ecef: ccl_thr + 0x5cef (thr_thread_wrapper + 0x15)
+	0x7f82ba14e58a: ccl_msg + 0x4058a (_Z12msg_exe_mainiPPKcPFiiS1_E + 0xa8)
+	0x5623526a1165: quartus + 0x2165 (main + 0x26)
+	0x7f82a9627d0e: c.so.6 + 0x27d0e
+	0x7f82a9627e4b: c.so.6 + 0x27e4b (__libc_start_main + 0x8b)
+	0x5623526a0f39: quartus + 0x1f39 (_start + 0x29)
+</callstack>
+<error>*** Fatal Error: Unhandled Exception</error>
+<date>Wed Nov 11 16:46:30 2026
+</date>
+<version>Version 23.1std.1 Build 993 05/14/2024 SC Lite Edition</version>
+</internal_error>
