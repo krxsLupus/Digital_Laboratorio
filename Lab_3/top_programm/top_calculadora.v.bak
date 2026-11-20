@@ -8,6 +8,7 @@ module top_calculadora (
     output reg [3:0] dig, 
     output wire led_error, 	
     output wire led_signo
+
 );
 
         reg Op_reg = 1'b0;
