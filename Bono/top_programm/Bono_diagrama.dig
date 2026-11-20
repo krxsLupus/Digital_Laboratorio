@@ -22,7 +22,7 @@
       <elementAttributes>
         <entry>
           <string>Description</string>
-          <string>negA = 1 convierte a A en -A para la resta</string>
+          <string>negA = 1 convierte a A en -A para la resta </string>
         </entry>
         <entry>
           <string>Label</string>
