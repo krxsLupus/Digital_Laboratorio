@@ -178,11 +178,11 @@ module vga_hud (
             if (xo < 10'd112) begin
                 if (pix_txt) begin
                     hit = 1'b1;
-                    rgb = (elegido && ci < 3'd3) ? 3'b110 : 3'b111;   // etiqueta amarilla si esta elegido
+                    rgb = (elegido && ci < 3'd3) ? 3'b011 : 3'b111;   // etiqueta amarilla si esta elegido
                 end
             end else if (en_barra) begin
                 hit = 1'b1;
-                rgb = barra_llena ? 3'b010 : 3'b001;
+                rgb = barra_llena ? 3'b111 : 3'b100;
             end
         end
     end

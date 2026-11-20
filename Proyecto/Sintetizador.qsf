@@ -38,7 +38,7 @@
 
 
 set_global_assignment -name FAMILY "Cyclone IV E"
-set_global_assignment -name DEVICE EP4CE10E22C8
+set_global_assignment -name DEVICE EP4CE6E22C8
 set_global_assignment -name TOP_LEVEL_ENTITY top_sintetizador
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 25.1STD.0
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "11:24:35  OCTOBER 22, 2026"
@@ -155,7 +155,7 @@ set_location_assignment PIN_46 -to oct_baja_n
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to oct_sube_n
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to oct_baja_n
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to env_btn
-set_location_assignment PIN_58 -to pedal
+set_location_assignment PIN_110 -to pedal
 set_location_assignment PIN_59 -to sw_eco
 set_location_assignment PIN_72 -to led_sel[0]
 set_location_assignment PIN_73 -to led_sel[1]
@@ -180,7 +180,7 @@ set_location_assignment PIN_111 -to sw_seq_b_n
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to sw_seq_a_n
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to sw_seq_b_n
 set_location_assignment PIN_105 -to led_seq_clear
-set_location_assignment PIN_110 -to led_seq_play
+set_location_assignment PIN_104 -to led_seq_play
 set_location_assignment PIN_106 -to led_seq_rec
 set_global_assignment -name OPTIMIZATION_MODE BALANCED
 set_global_assignment -name DSP_BLOCK_BALANCING AUTO
@@ -193,6 +193,14 @@ set_global_assignment -name ADV_NETLIST_OPT_SYNTH_WYSIWYG_REMAP ON
 set_global_assignment -name REMOVE_REDUNDANT_LOGIC_CELLS ON
 set_global_assignment -name MUX_RESTRUCTURE ON
 
+set_global_assignment -name OPTIMIZE_POWER_DURING_SYNTHESIS OFF
+set_global_assignment -name VERILOG_FILE secuenciador.v
+set_global_assignment -name VERILOG_FILE salida_i2s.v
+set_global_assignment -name VERILOG_FILE tb_voces.v
+set_global_assignment -name VERILOG_FILE tb_polifonia.v
+set_global_assignment -name VERILOG_FILE src/envelope_adsr.v
+set_global_assignment -name VERILOG_FILE src/lut_frecuencias.v
+set_global_assignment -name VERILOG_FILE src/bateria.v
 set_global_assignment -name VERILOG_FILE src/vga_scope.v
 set_global_assignment -name SDC_FILE Sintetizador.sdc
 set_global_assignment -name TCL_SCRIPT_FILE pines_sintetizador.tcl
@@ -221,5 +229,5 @@ set_global_assignment -name VERILOG_FILE src/boton_pulso.v
 set_global_assignment -name VERILOG_FILE src/bcd_7s.v
 set_global_assignment -name VERILOG_FILE src/banco_notas.v
 set_global_assignment -name VERILOG_FILE src/acumulador_fase.v
-set_global_assignment -name OPTIMIZE_POWER_DURING_SYNTHESIS OFF
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to sw_bat_n
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

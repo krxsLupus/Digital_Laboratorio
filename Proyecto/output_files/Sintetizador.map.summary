@@ -1,0 +1,14 @@
+Analysis & Synthesis Status : Successful - Fri Nov 20 04:39:57 2026
+Quartus Prime Version : 23.1std.1 Build 993 05/14/2024 SC Lite Edition
+Revision Name : Sintetizador
+Top-level Entity Name : top_sintetizador
+Family : Cyclone IV E
+Total logic elements : 6,636
+    Total combinational functions : 5,948
+    Dedicated logic registers : 2,633
+Total registers : 2633
+Total pins : 57
+Total virtual pins : 0
+Total memory bits : 146,432
+Embedded Multiplier 9-bit elements : 12
+Total PLLs : 0

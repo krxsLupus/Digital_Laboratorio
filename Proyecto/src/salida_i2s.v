@@ -32,6 +32,7 @@ module salida_i2s #(
     input  wire               rst,
     input  wire signed [20:0] suma,       // mezcla de banco_notas (+ metronomo)
     input  wire [11:0]        activas,
+    input  wire signed [19:0] bat,        // bateria (se suma despues de la ganancia automatica)
     input  wire [2:0]         volumen,    
     // Parámetros del Eco
     input  wire [3:0]         eco_t,
@@ -96,7 +97,8 @@ module salida_i2s #(
     // --- 1. Margen y saturación a 16 bits (señal seca) ---
     // El margen se resta aqui, antes de saturar: si se restara despues del
     // limite de 16 bits, la onda ya iria recortada.
-    wire signed [20:0] con_reserva = suma_n >>> RESERVA;
+    wire signed [20:0] suma_t      = suma_n + {bat[19], bat};
+    wire signed [20:0] con_reserva = suma_t >>> RESERVA;
 
     reg signed [15:0] x_seco = 16'sd0;
     always @(posedge clk) begin

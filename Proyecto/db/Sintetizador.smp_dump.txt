@@ -1,0 +1,7 @@
+
+State Machine - |top_sintetizador|vga_draw:u_vga_draw|vga_scope:u_scope|st
+Name st.S_DONE st.S_CAP st.S_ARM st.S_IDLE 
+st.S_IDLE 0 0 0 0 
+st.S_ARM 0 0 1 1 
+st.S_CAP 0 1 0 1 
+st.S_DONE 1 0 0 1 

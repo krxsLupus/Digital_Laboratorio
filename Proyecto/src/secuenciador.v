@@ -28,6 +28,12 @@
 // octava y el ADSR que tienes puestos (p_onda, p_oct, p_a..p_r) y esa capa suena SIEMPRE
 // con ellos, aunque despues los cambies. fuentes_voz los aplica a cada voz.
 //
+// Modo bateria (modo_bat = 1 al empezar a grabar): la capa nueva queda marcada como de
+// bateria para siempre. Sus teclas 0..4 se graban como GOLPES (solo el instante en que se
+// pulsa la tecla, no la duracion) y al reproducirse disparan bateria.v en vez de notas.
+// Una capa puede ser de notas o de bateria, no ambas: si ya hay 4 capas, la 5a grabacion
+// sigue el tipo de la capa 4. No cambies el switch de bateria mientras grabas.
+//
 // Metronomo: un clic cada negra (el primero de cada compas, mas agudo) durante REC y
 // durante PLAY mientras no haya nada grabado.
 // Una nota mantenida varios pasos suena continua. Solo la nota que TERMINA calla el
@@ -44,6 +50,7 @@ module secuenciador #(
     input  wire               sw_b_n,       // interruptor B (0 = cerrado)
     input  wire [11:0]        teclas,       // teclado fisico, ya con antirrebote
     input  wire [3:0]         bpm_idx,      // 0..15 -> 60 + 10*idx BPM
+    input  wire               modo_bat,     // 1 = modo bateria (teclas 0..4 = bombo, caja, hh cerr., hh abierto, platillo)
     // Parametros actuales (se copian a la capa al empezar a grabarla)
     input  wire [1:0]         p_onda,
     input  wire [1:0]         p_oct,
@@ -52,7 +59,9 @@ module secuenciador #(
     input  wire [3:0]         p_s,
     input  wire [3:0]         p_r,
     // Salidas por capa (capa 0 en los bits menos significativos)
-    output wire [47:0]        gate_capas,   // notas que pide cada capa (4 x 12)
+    output wire [47:0]        gate_capas,   // notas que pide cada capa (4 x 12); 0 en capas de bateria
+    output wire [4:0]         gate_bat,     // golpes de bateria que piden las capas de bateria (OR)
+    output wire [3:0]         capa_bat,     // 1 = la capa es de bateria
     output wire [7:0]         capa_onda,    // 4 x 2
     output wire [7:0]         capa_oct,     // 4 x 2
     output wire [15:0]        capa_a,       // 4 x 4
@@ -155,6 +164,9 @@ module secuenciador #(
     reg [2:0]  usadas   = 3'd0;            // capas con contenido
     reg [1:0]  capa_rec = 2'd0;            // capa en la que se graba
     reg [23:0] lmask_v  = 24'd0;           // por capa: 15, 31 o 63 (ultimo paso de su loop)
+    reg [3:0]  c_bat    = 4'd0;            // por capa: 1 = bateria
+    assign capa_bat = c_bat;
+    wire [5*NCAPAS-1:0] gb_v;              // golpes de bateria por capa
     assign capas = usadas;
 
     // Ultimo paso del loop en PLAY: el de la capa mas larga (minimo 1 compas)
@@ -228,12 +240,23 @@ module secuenciador #(
     // ---------------- Captura de lo que se toca ----------------
     // 'cap' junta todas las teclas vistas desde la mitad del paso anterior.
     reg  [11:0] cap = 12'd0;
-    wire [11:0] tocado = cap | teclas;
+    reg  [4:0]  tq = 5'd0;                           // teclas del ciclo anterior (flancos)
+    always @(posedge clk) tq <= teclas[4:0];
+    wire [4:0]  flanco = teclas[4:0] & ~tq;          // pulsaciones nuevas (bateria)
+    reg  [4:0]  capb = 5'd0;
+    reg         rec_bat = 1'b0;                      // tipo de la capa que se graba
+    wire [11:0] tocado = rec_bat ? {7'd0, capb | flanco} : (cap | teclas);
 
     always @(posedge clk) begin
         if (rst || !rec)  cap <= 12'd0;
         else if (a_mitad) cap <= teclas;
-        else              cap <= tocado;
+        else              cap <= cap | teclas;
+    end
+
+    always @(posedge clk) begin
+        if (rst || !rec)  capb <= 5'd0;
+        else if (a_mitad) capb <= flanco;
+        else              capb <= capb | flanco;
     end
 
     // ---------------- Memorias (una por capa) y parametros ----------------
@@ -269,6 +292,7 @@ module secuenciador #(
                 .rd  (rd_v[12*g +: 12])
             );
 
+            wire       dr = c_bat[g];
             reg [11:0] cur = 12'd0, sig = 12'd0, gate_r = 12'd0;
             always @(posedge clk) begin
                 if (fase == 24'd3) cur <= rd_v[12*g +: 12];     // lectura del paso actual
@@ -280,11 +304,14 @@ module secuenciador #(
                 if (rst || !corriendo || (g >= usadas) || propia)
                     gate_r <= 12'd0;
                 else if (fase > 24'd4)
-                    gate_r <= cur & ((fase < corte) ? 12'hFFF : sig);
+                    gate_r <= cur & ((fase < corte) ? 12'hFFF : (dr ? 12'd0 : sig));
             end
-            assign gate_capas[12*g +: 12] = gate_r;
+            assign gate_capas[12*g +: 12] = dr ? 12'd0 : gate_r;
+            assign gb_v[5*g +: 5]         = dr ? gate_r[4:0] : 5'd0;
         end
     endgenerate
+
+    assign gate_bat = gb_v[4:0] | gb_v[9:5] | gb_v[14:10] | gb_v[19:15];
 
     // Parametros de cada capa
     reg [7:0]  c_onda = 8'd0, c_oct = 8'd0;
@@ -303,6 +330,7 @@ module secuenciador #(
         grab_ant <= grabando;
         if (rst || borrar) begin
             usadas    <= 3'd0;
+            c_bat     <= 4'd0;
             capa_rec  <= 2'd0;
             lmask_v   <= 24'd0;
             limpiando <= 1'b0;
@@ -310,7 +338,9 @@ module secuenciador #(
         end else begin
             if (entra_rec) begin
                 capa_rec <= capa_nueva;
+                rec_bat  <= nueva ? modo_bat : c_bat[3];
                 if (nueva) begin
+                    c_bat[capa_nueva] <= modo_bat;
                     limpiando <= 1'b1;
                     cnt_limp  <= 6'd0;
                     lmask_v[6*capa_nueva +: 6] <= 6'd0;

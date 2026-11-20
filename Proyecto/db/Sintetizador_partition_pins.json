@@ -1,0 +1,237 @@
+{
+	"partitions" : [
+		{
+			"name" : "Top",
+			"pins" : [
+				{
+					"name" : "rows_tec[0]",
+					"strict" : false
+				},
+				{
+					"name" : "rows_tec[1]",
+					"strict" : false
+				},
+				{
+					"name" : "rows_tec[2]",
+					"strict" : false
+				},
+				{
+					"name" : "rows_tec[3]",
+					"strict" : false
+				},
+				{
+					"name" : "led_sel[0]",
+					"strict" : false
+				},
+				{
+					"name" : "led_sel[1]",
+					"strict" : false
+				},
+				{
+					"name" : "led_sel[2]",
+					"strict" : false
+				},
+				{
+					"name" : "led_sel[3]",
+					"strict" : false
+				},
+				{
+					"name" : "led_sel[4]",
+					"strict" : false
+				},
+				{
+					"name" : "led_sel[5]",
+					"strict" : false
+				},
+				{
+					"name" : "led_sel[6]",
+					"strict" : false
+				},
+				{
+					"name" : "led_sel[7]",
+					"strict" : false
+				},
+				{
+					"name" : "led_oct[0]",
+					"strict" : false
+				},
+				{
+					"name" : "led_oct[1]",
+					"strict" : false
+				},
+				{
+					"name" : "led_oct[2]",
+					"strict" : false
+				},
+				{
+					"name" : "led_oct[3]",
+					"strict" : false
+				},
+				{
+					"name" : "led_seq_play",
+					"strict" : false
+				},
+				{
+					"name" : "led_seq_rec",
+					"strict" : false
+				},
+				{
+					"name" : "led_seq_clear",
+					"strict" : false
+				},
+				{
+					"name" : "i2s_bclk",
+					"strict" : false
+				},
+				{
+					"name" : "i2s_lrclk",
+					"strict" : false
+				},
+				{
+					"name" : "i2s_din",
+					"strict" : false
+				},
+				{
+					"name" : "seg[0]",
+					"strict" : false
+				},
+				{
+					"name" : "seg[1]",
+					"strict" : false
+				},
+				{
+					"name" : "seg[2]",
+					"strict" : false
+				},
+				{
+					"name" : "seg[3]",
+					"strict" : false
+				},
+				{
+					"name" : "seg[4]",
+					"strict" : false
+				},
+				{
+					"name" : "seg[5]",
+					"strict" : false
+				},
+				{
+					"name" : "seg[6]",
+					"strict" : false
+				},
+				{
+					"name" : "dig[0]",
+					"strict" : false
+				},
+				{
+					"name" : "dig[1]",
+					"strict" : false
+				},
+				{
+					"name" : "dig[2]",
+					"strict" : false
+				},
+				{
+					"name" : "dig[3]",
+					"strict" : false
+				},
+				{
+					"name" : "vga_hs",
+					"strict" : false
+				},
+				{
+					"name" : "vga_vs",
+					"strict" : false
+				},
+				{
+					"name" : "vga_r",
+					"strict" : false
+				},
+				{
+					"name" : "vga_g",
+					"strict" : false
+				},
+				{
+					"name" : "vga_b",
+					"strict" : false
+				},
+				{
+					"name" : "clk",
+					"strict" : false
+				},
+				{
+					"name" : "rst",
+					"strict" : false
+				},
+				{
+					"name" : "sw_bat_n",
+					"strict" : false
+				},
+				{
+					"name" : "sw_seq_a_n",
+					"strict" : false
+				},
+				{
+					"name" : "sw_seq_b_n",
+					"strict" : false
+				},
+				{
+					"name" : "pin_a",
+					"strict" : false
+				},
+				{
+					"name" : "vol_a",
+					"strict" : false
+				},
+				{
+					"name" : "vol_b",
+					"strict" : false
+				},
+				{
+					"name" : "pin_b",
+					"strict" : false
+				},
+				{
+					"name" : "env_btn",
+					"strict" : false
+				},
+				{
+					"name" : "oct_sube_n",
+					"strict" : false
+				},
+				{
+					"name" : "oct_baja_n",
+					"strict" : false
+				},
+				{
+					"name" : "env_a",
+					"strict" : false
+				},
+				{
+					"name" : "env_b",
+					"strict" : false
+				},
+				{
+					"name" : "cols_tec[0]",
+					"strict" : false
+				},
+				{
+					"name" : "cols_tec[1]",
+					"strict" : false
+				},
+				{
+					"name" : "cols_tec[2]",
+					"strict" : false
+				},
+				{
+					"name" : "sw_eco",
+					"strict" : false
+				},
+				{
+					"name" : "pedal",
+					"strict" : false
+				}
+			]
+		}
+	]
+}

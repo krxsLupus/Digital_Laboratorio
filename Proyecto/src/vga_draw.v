@@ -43,7 +43,7 @@ module vga_draw(
     always @(*) begin
         if (~video_on)         rgb_n = 3'b000;
         else if (hud_hit)      rgb_n = hud_rgb;
-        else if (trazo_activo) rgb_n = 3'b010;   // mezcla en verde
+        else if (trazo_activo) rgb_n = 3'b111;   // mezcla en rojo
         else                   rgb_n = 3'b000;
     end
 

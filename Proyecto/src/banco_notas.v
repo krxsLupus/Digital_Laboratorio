@@ -291,8 +291,13 @@ module banco_notas (
 
     // Etapa C: multiplicador (hardware DSP de 9 bits)
     (* multstyle = "dsp" *) wire signed [17:0] mult = v_reg * $signed({1'b0, e_reg});
-    wire signed [17:0] mult_g = (w_reg == 2'd1) ? (mult + (mult >>> 1)) : mult;   // sierra x1.5
-
+	// Ganancia por forma de onda (iguala el volumen percibido en Do4/Do5)
+	//   0 cuadrada x0.5 | 1 sierra x0.625 | 2 triangular x1.5 | 3 seno x2
+	 wire signed [17:0] mult_g =
+		(w_reg == 2'd0) ? (mult >>> 1)                 :   // cuadrada x0.5
+		(w_reg == 2'd1) ? ((mult >>> 1) + (mult >>> 3)) :  // sierra   x0.625
+		(w_reg == 2'd2) ? (mult + (mult >>> 1))        :   // triangular x1.5
+                      (mult <<< 1);                    // seno x2
     reg               c_val = 1'b0, c_first = 1'b0, c_last = 1'b0;
     reg signed [17:0] prod  = 18'sd0;
 

@@ -21,6 +21,7 @@ module top_sintetizador (
     input  wire       sw_eco,    // eco: interruptor SW2 del DIP (ON = eco encendido)
     input  wire       sw_seq_a_n, // secuenciador: interruptor A (a GND = cerrado)
     input  wire       sw_seq_b_n, // secuenciador: interruptor B (a GND = cerrado)
+    input  wire       sw_bat_n,   // modo bateria: interruptor a GND = bateria (DIP SW3: ON = bateria)
     output wire       led_seq_play,  // LED externo: loop corriendo (se enciende con 1)
     output wire       led_seq_rec,   // LED externo: grabando (parpadea = esperando el inicio)
     output wire       led_seq_clear, // LED externo: modo CLEAR
@@ -61,6 +62,16 @@ module top_sintetizador (
         .sel_onda (sel_onda)
     );
 
+    // Modo bateria: sincronizar el interruptor. En este modo las teclas 0..4 tocan la
+    // bateria (bombo, caja, hi-hat cerrado, hi-hat abierto, platillo) y NO suenan como notas.
+    reg sw_bat_s1 = 1'b1, sw_bat_s2 = 1'b1;
+    always @(posedge clk) begin
+        sw_bat_s1 <= sw_bat_n;
+        sw_bat_s2 <= sw_bat_s1;
+    end
+    wire modo_bat = ~sw_bat_s2;
+    wire [11:0] teclas_sint = modo_bat ? {teclas[11:5], 5'd0} : teclas;
+
     // 2a. Pedal de sustain: mantiene las notas aunque se suelte la tecla.
     //     'gate' (no 'teclas') es lo que ve la envolvente de cada voz.
     wire [11:0] gate_vivo;
@@ -69,7 +80,7 @@ module top_sintetizador (
         .clk    (clk),
         .rst    (rst_h),
         .pedal  (pedal),
-        .teclas (teclas),
+        .teclas (teclas_sint),
         .gate   (gate_vivo)
     );
 
@@ -123,6 +134,8 @@ module top_sintetizador (
     wire [3:0] paso_seq;
     wire [2:0] capas_seq;
     wire       seq_corre;
+    wire [4:0] gate_bat;
+    wire [3:0] capa_bat;
 
     secuenciador #(.CLK_FREQ(50_000_000)) u_seq (
         .clk        (clk),
@@ -131,6 +144,7 @@ module top_sintetizador (
         .sw_b_n     (sw_seq_b_n),
         .teclas     (teclas),
         .bpm_idx    (bpm_idx),
+        .modo_bat   (modo_bat),
         .p_onda     (sel_onda),
         .p_oct      (oct),
         .p_a        (a_idx),
@@ -138,6 +152,8 @@ module top_sintetizador (
         .p_s        (s_idx),
         .p_r        (r_idx),
         .gate_capas (gate_capas),
+        .gate_bat   (gate_bat),
+        .capa_bat   (capa_bat),
         .capa_onda  (capa_onda),
         .capa_oct   (capa_oct),
         .capa_a     (capa_a),
@@ -227,6 +243,17 @@ module top_sintetizador (
         .suma     (suma)
     );
 
+    // 3b. Bateria: golpes en vivo (modo bateria) + golpes de las capas de bateria
+    wire [4:0] trig_bat = (modo_bat ? teclas[4:0] : 5'd0) | gate_bat;
+    wire signed [19:0] bat_out;
+
+    bateria u_bateria (
+        .clk    (clk),
+        .rst    (rst_h),
+        .trig   (trig_bat),
+        .salida (bat_out)
+    );
+
     // 4. Etapa de salida: ganancia, ADSR, eco a 24k, volumen, saturacion e I2S
     wire [2:0] volumen;
 
@@ -257,6 +284,7 @@ module top_sintetizador (
         .rst       (rst_h),
         .suma      (suma_mix),
         .activas   (activas),
+        .bat       (bat_out),
         .volumen   (volumen),
         .eco_t     (eco_t),
         .eco_fb    (eco_fb),
@@ -332,7 +360,7 @@ module top_sintetizador (
             end
             2'b11: begin
                 dig = 4'b0111;
-                digito_mostrar = {2'b00, sel_onda};
+                digito_mostrar = modo_bat ? 4'hd : {2'b00, sel_onda};   // 'd' = bateria
                 seg = seg_decodificado;
             end
             default: begin

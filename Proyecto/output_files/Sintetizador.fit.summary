@@ -1,0 +1,16 @@
+Fitter Status : Successful - Fri Nov 20 09:37:53 2026
+Quartus Prime Version : 23.1std.1 Build 993 05/14/2024 SC Lite Edition
+Revision Name : Sintetizador
+Top-level Entity Name : top_sintetizador
+Family : Cyclone IV E
+Device : EP4CE6E22C8
+Timing Models : Final
+Total logic elements : 6,071 / 6,272 ( 97 % )
+    Total combinational functions : 5,948 / 6,272 ( 95 % )
+    Dedicated logic registers : 2,606 / 6,272 ( 42 % )
+Total registers : 2606
+Total pins : 57 / 92 ( 62 % )
+Total virtual pins : 0
+Total memory bits : 146,432 / 276,480 ( 53 % )
+Embedded Multiplier 9-bit elements : 12 / 30 ( 40 % )
+Total PLLs : 0 / 2 ( 0 % )

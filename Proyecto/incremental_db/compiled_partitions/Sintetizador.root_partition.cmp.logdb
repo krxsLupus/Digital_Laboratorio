@@ -1,0 +1,10 @@
+v1
+DSP_BALANCING_IMPLEMENTATION,DSP_BLOCKS,salida_i2s:u_audio|lpm_mult:Mult0|mult_p5t:auto_generated|mac_out2,
+DSP_BALANCING_IMPLEMENTATION,DSP_BLOCKS,salida_i2s:u_audio|efectos_audio:u_efectos|eco:u_eco|lpm_mult:Mult2|mult_s4t:auto_generated|mac_out2,
+DSP_BALANCING_IMPLEMENTATION,DSP_BLOCKS,bateria:u_bateria|lpm_mult:Mult0|mult_j4t:auto_generated|mac_out2,
+DSP_BALANCING_IMPLEMENTATION,DSP_BLOCKS,salida_i2s:u_audio|lpm_mult:Mult0|mult_p5t:auto_generated|mac_out4,
+DSP_BALANCING_IMPLEMENTATION,DSP_BLOCKS,salida_i2s:u_audio|efectos_audio:u_efectos|eco:u_eco|lpm_mult:Mult1|mult_56t:auto_generated|mac_out2,
+DSP_BALANCING_IMPLEMENTATION,DSP_BLOCKS,banco_notas:u_banco|lpm_mult:Mult0|mult_j4t:auto_generated|mac_out2,
+PORT_SWAPPING,PORT_SWAP_TYPE_DSPMULT,salida_i2s:u_audio|lpm_mult:Mult0|mult_p5t:auto_generated|mac_mult3,
+PORT_SWAPPING,PORT_SWAP_TYPE_DSPMULT,bateria:u_bateria|lpm_mult:Mult0|mult_j4t:auto_generated|mac_mult1,
+PORT_SWAPPING,PORT_SWAP_TYPE_DSPMULT,banco_notas:u_banco|lpm_mult:Mult0|mult_j4t:auto_generated|mac_mult1,

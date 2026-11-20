@@ -7,7 +7,7 @@
 # 1. Estandar de I/O: los bancos de la placa se alimentan a 3.3 V
 # ---------------------------------------------------------------
 set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
-foreach p {clk rst cols_tec[*] rows_tec[*] pin_a pin_b vol_a vol_b oct_sube_n oct_baja_n env_a env_b env_btn pedal sw_eco sw_seq_a_n sw_seq_b_n i2s_bclk i2s_lrclk i2s_din seg[*] dig[*] led_sel[*] led_oct[*] vga_hs vga_vs vga_r vga_g vga_b} {
+foreach p {clk rst cols_tec[*] rows_tec[*] pin_a pin_b vol_a vol_b oct_sube_n oct_baja_n env_a env_b env_btn pedal sw_eco sw_seq_a_n sw_seq_b_n sw_bat_n i2s_bclk i2s_lrclk i2s_din seg[*] dig[*] led_sel[*] led_oct[*] vga_hs vga_vs vga_r vga_g vga_b} {
     set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to $p
 }
 
@@ -64,6 +64,7 @@ set_location_assignment PIN_55 -to i2s_din      ;# header pin 24  -> DIN  del mo
 # ---------------------------------------------------------------
 set_location_assignment PIN_58 -to pedal        ;# SW1: pedal de sustain (ON = pedal abajo)
 set_location_assignment PIN_59 -to sw_eco       ;# SW2: eco (ON = eco encendido)
+set_location_assignment PIN_60 -to sw_bat_n     ;# SW3 del DIP: modo bateria (ON = bateria). Con un switch externo: otro pin libre, a GND = bateria
 
 # Interruptores del secuenciador (toggle de 2 posiciones entre el pin y GND; GND = header pin 26 o 17)
 #   A cerrado = PLAY | A y B cerrados = REC | solo B cerrado = CLEAR (mantener 1 s) | ninguno = STOP
