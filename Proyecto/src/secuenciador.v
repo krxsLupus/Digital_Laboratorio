@@ -1,93 +1,94 @@
-// Secuenciador con capas acumulables (loop), grabacion en vivo.
+// Secuenciador con capas que se acumulan en loop y grabacion en vivo.
 //
-// Controles: dos interruptores (toggle) a GND. Cerrado = 1.
+// Se controla con dos interruptores a GND, cerrado cuenta como 1.
 //     sw_b sw_a   modo
-//       0    0    STOP   : nada suena del loop, el contador vuelve al paso 0
-//       0    1    PLAY   : el loop suena (si no hay nada grabado suena el metronomo)
-//       1    1    REC    : el loop suena y lo que toques se graba en una capa nueva
-//       1    0    CLEAR  : mantenido 1 s borra todas las capas
-//     El orden STOP - PLAY - REC - CLEAR es un codigo Gray: de un modo al vecino
-//     solo hay que mover UN interruptor, y PLAY <-> REC no pasa por STOP ni CLEAR.
-//     CLEAR solo borra si se queda 1 s, asi que pasar de largo por esa posicion no borra nada.
+//       0    0    STOP   no suena nada del loop y el contador vuelve al paso 0
+//       0    1    PLAY   suena el loop, y si no hay nada grabado suena el metronomo
+//       1    1    REC    suena el loop y lo que toques se graba en una capa nueva
+//       1    0    CLEAR  si se mantiene 1 s borra todas las capas
+//     El orden STOP, PLAY, REC, CLEAR es un codigo Gray, entre modos vecinos solo se mueve un interruptor.
+//     Ademas de PLAY a REC y al reves no se pasa por STOP ni por CLEAR.
+//     CLEAR solo borra si se queda 1 s completo, asi que pasar de largo por esa posicion no borra nada.
 //
-// Una grabacion = una capa, dure lo que dure:
-//   * Un compas son 16 pasos (semicorcheas, 4 tiempos). Una capa puede ocupar 1, 2 o
-//     4 compases (16, 32 o 64 pasos): su largo es el del compas donde esta su ultima
-//     nota. Tocar mas alla del compas 1 NO crea otra capa: la capa se alarga.
-//   * Al pasar a REC la grabacion arranca en el inicio del loop (paso 0), no en mitad.
-//     Mientras esperas ese inicio ya suena lo grabado y el metronomo.
-//   * Durante REC el contador de pasos corre hasta 64 (4 compases) y vuelve a 0. Al
-//     salir de REC el loop dura lo que la capa mas larga; las mas cortas se repiten.
-//   * Las notas se cuantizan al paso MAS CERCANO. Una tecla mantenida llena todos los
-//     pasos que cruza (la duracion queda grabada).
-//   * Cada vez que entras a REC se usa una capa nueva (hasta 4). Las anteriores suenan
-//     mientras grabas. La capa que se esta grabando se oye al volver a PLAY. Con las 4
-//     capas llenas, REC sigue anadiendo notas a la ultima.
+// Una grabacion es una capa, dure lo que dure.
+//   Un compas son 16 pasos, semicorcheas de 4 tiempos. Una capa puede ocupar 1, 2 o 4 compases,
+//   o sea 16, 32 o 64 pasos, y su largo lo marca el compas donde esta su ultima nota.
+//   Tocar mas alla del compas 1 no crea otra capa, la capa se alarga.
+//   Al pasar a REC la grabacion arranca en el inicio del loop, en el paso 0 y no a mitad.
+//   Mientras esperas ese inicio ya suena lo grabado y el metronomo.
+//   Durante REC el contador de pasos llega hasta 64 (4 compases) y vuelve a 0.
+//   Al salir de REC el loop dura lo mismo que la capa mas larga y las mas cortas se repiten.
+//   Las notas se cuantizan al paso mas cercano.
+//   Una tecla mantenida llena todos los pasos que cruza, asi queda guardada la duracion.
+//   Cada vez que entras a REC se usa una capa nueva, hasta 4. Las anteriores suenan mientras grabas.
+//   La capa que se esta grabando se escucha al volver a PLAY.
+//   Con las 4 capas llenas, REC sigue anadiendo notas a la ultima.
 //
-// Parametros por capa: al empezar a grabar una capa se copian la forma de onda, la
-// octava y el ADSR que tienes puestos (p_onda, p_oct, p_a..p_r) y esa capa suena SIEMPRE
-// con ellos, aunque despues los cambies. fuentes_voz los aplica a cada voz.
+// Parametros por capa
+//   Al empezar a grabar una capa se copian la forma de onda, la octava y el ADSR que tengas puestos.
+//   Esa capa suena siempre con esos valores aunque despues los cambies. fuentes_voz se los aplica a cada voz.
 //
-// Modo bateria (modo_bat = 1 al empezar a grabar): la capa nueva queda marcada como de
-// bateria para siempre. Sus teclas 0..4 se graban como GOLPES (solo el instante en que se
-// pulsa la tecla, no la duracion) y al reproducirse disparan bateria.v en vez de notas.
-// Una capa puede ser de notas o de bateria, no ambas: si ya hay 4 capas, la 5a grabacion
-// sigue el tipo de la capa 4. No cambies el switch de bateria mientras grabas.
+// Modo bateria
+//   Si modo_bat vale 1 al empezar a grabar, la capa queda marcada como de bateria para siempre.
+//   Sus teclas de la 0 a la 4 se graban como golpes, solo el instante en que pulsas y no la duracion.
+//   Al reproducirse disparan bateria.v en vez de notas.
+//   Una capa es de notas o de bateria, nunca las dos. Si ya hay 4 capas, la quinta grabacion sigue el tipo de la capa 4.
+//   No cambies el switch de bateria mientras grabas.
 //
-// Metronomo: un clic cada negra (el primero de cada compas, mas agudo) durante REC y
-// durante PLAY mientras no haya nada grabado.
-// Una nota mantenida varios pasos suena continua. Solo la nota que TERMINA calla el
-// ultimo 1/8 de su paso. (Dos toques separados de la misma nota en pasos seguidos se
-// graban como una nota larga: se guarda que la tecla esta pulsada en cada paso.)
+// Metronomo
+//   Suena un clic por negra, el primero de cada compas mas agudo, durante REC y durante PLAY si no hay nada grabado.
+//   Una nota mantenida varios pasos suena continua, solo la nota que termina calla en el ultimo octavo de su paso.
+//   Dos toques separados de la misma nota en pasos seguidos se graban como una sola nota larga,
+//   porque lo que se guarda es si la tecla estaba pulsada en cada paso.
 module secuenciador #(
     parameter integer CLK_FREQ = 50_000_000,
     parameter integer DEB_MS   = 20,        // antirrebote de los interruptores
-    parameter integer CLEAR_MS = 1000       // tiempo en CLEAR para borrar
+    parameter integer CLEAR_MS = 1000       // tiempo que hay que estar en CLEAR para borrar
 )(
     input  wire               clk,
     input  wire               rst,          // activo en alto
-    input  wire               sw_a_n,       // interruptor A (0 = cerrado)
-    input  wire               sw_b_n,       // interruptor B (0 = cerrado)
-    input  wire [11:0]        teclas,       // teclado fisico, ya con antirrebote
-    input  wire [3:0]         bpm_idx,      // 0..15 -> 60 + 10*idx BPM
-    input  wire               modo_bat,     // 1 = modo bateria (teclas 0..4 = bombo, caja, hh cerr., hh abierto, platillo)
-    // Parametros actuales (se copian a la capa al empezar a grabarla)
+    input  wire               sw_a_n,       // interruptor A, 0 es cerrado
+    input  wire               sw_b_n,       // interruptor B, 0 es cerrado
+    input  wire [11:0]        teclas,       // teclado fisico, ya sin rebotes
+    input  wire [3:0]         bpm_idx,      // de 0 a 15, da 60 mas 10 por el indice en BPM
+    input  wire               modo_bat,     // en 1 las teclas 0 a 4 son bombo, caja, hh cerrado, hh abierto y platillo
+    // Parametros actuales, se copian a la capa cuando empieza a grabarse
     input  wire [1:0]         p_onda,
     input  wire [1:0]         p_oct,
     input  wire [3:0]         p_a,
     input  wire [3:0]         p_d,
     input  wire [3:0]         p_s,
     input  wire [3:0]         p_r,
-    // Salidas por capa (capa 0 en los bits menos significativos)
-    output wire [47:0]        gate_capas,   // notas que pide cada capa (4 x 12); 0 en capas de bateria
-    output wire [4:0]         gate_bat,     // golpes de bateria que piden las capas de bateria (OR)
-    output wire [3:0]         capa_bat,     // 1 = la capa es de bateria
-    output wire [7:0]         capa_onda,    // 4 x 2
-    output wire [7:0]         capa_oct,     // 4 x 2
-    output wire [15:0]        capa_a,       // 4 x 4
+    // Salidas por capa, la capa 0 va en los bits menos significativos
+    output wire [47:0]        gate_capas,   // notas que pide cada capa, 4 por 12, y en las capas de bateria va en 0
+    output wire [4:0]         gate_bat,     // golpes de bateria que piden las capas de bateria, con un OR entre todas
+    output wire [3:0]         capa_bat,     // 1 si la capa es de bateria
+    output wire [7:0]         capa_onda,    // 4 por 2 bits
+    output wire [7:0]         capa_oct,     // 4 por 2 bits
+    output wire [15:0]        capa_a,       // 4 por 4 bits
     output wire [15:0]        capa_d,
     output wire [15:0]        capa_s,
     output wire [15:0]        capa_r,
-    output wire signed [19:0] click,        // metronomo (a sumar con la mezcla)
-    output wire [3:0]         paso,         // paso dentro del compas 0..15
-    output wire [2:0]         capas,        // capas con contenido 0..4
-    output wire               corriendo,    // 1 en PLAY y REC
-    // Indicadores de modo (LEDs externos, se encienden con 1)
+    output wire signed [19:0] click,        // metronomo, se suma a la mezcla
+    output wire [3:0]         paso,         // paso dentro del compas, de 0 a 15
+    output wire [2:0]         capas,        // capas con contenido, de 0 a 4
+    output wire               corriendo,    // 1 en PLAY y en REC
+    // Indicadores de modo para LEDs externos, se encienden con 1
     output wire               led_play,     // fijo mientras el loop corre
-    output wire               led_rec,      // parpadea esperando el inicio del loop; fijo grabando
+    output wire               led_rec,      // parpadea mientras espera el inicio del loop y queda fijo al grabar
     output wire               led_clear     // fijo en CLEAR hasta que termina el borrado
 );
 
     localparam integer NCAPAS = 4;
 
-    // ---------------- Interruptores: sincronizar + antirrebote ----------------
+    // Interruptores, se sincronizan y se les quita el rebote
     localparam integer DEB_LIM = DEB_MS * (CLK_FREQ / 1000);
     localparam integer DEB_W   = $clog2(DEB_LIM + 1);
 
-    wire [1:0] crudo = {~sw_b_n, ~sw_a_n};          // 1 = cerrado
+    wire [1:0] crudo = {~sw_b_n, ~sw_a_n};          // 1 es cerrado
     reg  [1:0] s1 = 2'b00, s2 = 2'b00;
     reg  [1:0] ultimo  = 2'b00;
-    reg  [1:0] modo    = 2'b00;                     // estable
+    reg  [1:0] modo    = 2'b00;                     // el modo ya estable
     reg  [DEB_W-1:0] cnt_deb = 0;
 
     always @(posedge clk) begin
@@ -98,7 +99,7 @@ module secuenciador #(
             modo    <= 2'b00;
             cnt_deb <= 0;
         end else if (s2 != ultimo) begin
-            ultimo  <= s2;                          // cambio: empezar a contar de nuevo
+            ultimo  <= s2;                          // hubo un cambio, se empieza a contar otra vez
             cnt_deb <= 0;
         end else if (s2 != modo) begin
             if (cnt_deb == DEB_LIM - 1) begin
@@ -114,20 +115,20 @@ module secuenciador #(
     assign corriendo = (modo == M_PLAY) || (modo == M_REC);
     wire   grabando  = (modo == M_REC);
 
-    // Al salir de REC se sigue 'grabando' hasta el siguiente instante de cuantizacion
-    // (como mucho medio paso), para no perder la ultima nota si sueltas el interruptor
-    // justo despues de tocarla. 'grab_ef' es el REC efectivo.
+    // Al salir de REC se sigue grabando hasta el siguiente instante de cuantizacion, medio paso como mucho.
+    // Asi no se pierde la ultima nota si sueltas el interruptor justo despues de tocarla.
+    // grab_ef es el REC efectivo.
     reg  grab_ant  = 1'b0;
-    reg  armada    = 1'b0;            // REC ya paso por el paso 0: se graba
+    reg  armada    = 1'b0;            // ya paso por el paso 0 asi que se puede grabar
     reg  cerrando  = 1'b0;
-    wire sale      = grab_ant && !grabando && armada;      // un ciclo: acaba de salir de REC
+    wire sale      = grab_ant && !grabando && armada;      // dura un ciclo, justo cuando se acaba de salir de REC
     wire grab_ef   = grabando || cerrando || sale;
 
-    // ---------------- Tempo: ciclos por paso (semicorchea) ----------------
-    // ciclos = CLK_FREQ * 60 / (4 * BPM) = CLK_FREQ * 15 / BPM
+    // Tempo, ciclos de reloj que dura cada paso (una semicorchea)
+    // ciclos es CLK_FREQ por 60 entre 4 por BPM, que se simplifica a CLK_FREQ por 15 entre BPM
     reg [23:0] periodo = 24'd0;
-    
-    // Funcion para aislar la matematica de 32 bits y forzar el truncamiento a 24 bits sin advertencias
+
+    // Funcion para hacer la cuenta de 32 bits aparte y recortar a 24 sin que salgan warnings
     function [23:0] calc_periodo(input integer bpm);
         calc_periodo = (CLK_FREQ * 15) / bpm;
     endfunction
@@ -154,22 +155,22 @@ module secuenciador #(
     end
 
     reg [23:0] mitad = 24'd0;      // instante de cuantizacion dentro del paso
-    reg [23:0] corte = 24'd0;      // desde aqui el paso calla (ultimo 1/8)
+    reg [23:0] corte = 24'd0;      // a partir de aqui el paso calla, es su ultimo octavo
     always @(posedge clk) begin
         mitad <= periodo >> 1;
         corte <= periodo - (periodo >> 3);
     end
 
-    // ---------------- Estado de las capas ----------------
-    reg [2:0]  usadas   = 3'd0;            // capas con contenido
-    reg [1:0]  capa_rec = 2'd0;            // capa en la que se graba
-    reg [23:0] lmask_v  = 24'd0;           // por capa: 15, 31 o 63 (ultimo paso de su loop)
-    reg [3:0]  c_bat    = 4'd0;            // por capa: 1 = bateria
+    // Estado de las capas
+    reg [2:0]  usadas   = 3'd0;            // cuantas capas tienen contenido
+    reg [1:0]  capa_rec = 2'd0;            // capa donde se esta grabando
+    reg [23:0] lmask_v  = 24'd0;           // por capa, vale 15, 31 o 63 y es el ultimo paso de su loop
+    reg [3:0]  c_bat    = 4'd0;            // por capa, 1 si es de bateria
     assign capa_bat = c_bat;
-    wire [5*NCAPAS-1:0] gb_v;              // golpes de bateria por capa
+    wire [5*NCAPAS-1:0] gb_v;              // golpes de bateria de cada capa
     assign capas = usadas;
 
-    // Ultimo paso del loop en PLAY: el de la capa mas larga (minimo 1 compas)
+    // Ultimo paso del loop en PLAY, el de la capa mas larga y como minimo 1 compas
     reg [5:0] lmask_loop;
     integer   l;
     always @(*) begin
@@ -178,9 +179,9 @@ module secuenciador #(
             if (l < usadas) lmask_loop = lmask_loop | lmask_v[6*l +: 6];
     end
 
-    // ---------------- Contador de paso (0..63) ----------------
-    // En REC (ya armado) corre hasta 63 para poder grabar hasta 4 compases; si no, da
-    // la vuelta en el ultimo paso del loop.
+    // Contador de paso, de 0 a 63
+    // En REC ya armado llega hasta 63 para poder grabar hasta 4 compases
+    // En los demas casos da la vuelta en el ultimo paso del loop
     reg [23:0] fase   = 24'd0;
     reg [5:0]  paso_r = 6'd0;
     wire [5:0] lim = (grab_ef && armada) ? 6'd63 : lmask_loop;
@@ -197,9 +198,10 @@ module secuenciador #(
             fase <= fase + 24'd1;
     end
 
+    // Pulso en la mitad de cada paso, aqui se decide a que paso va lo que tocaste
     wire a_mitad = corriendo && (fase == mitad);
 
-    // REC se arma al llegar al inicio del loop (antes de su instante de cuantizacion)
+    // REC se arma cuando llega al inicio del loop, antes de su instante de cuantizacion
     always @(posedge clk) begin
         if (rst || !grab_ef)                         armada <= 1'b0;
         else if (paso_r == 6'd0 && fase < mitad)     armada <= 1'b1;
@@ -213,7 +215,7 @@ module secuenciador #(
         else if (a_mitad)                   cerrando <= 1'b0;      // ya se escribio
     end
 
-    // ---------------- Borrado (CLEAR mantenido) ----------------
+    // Borrado, se hace cuando CLEAR se mantiene
     localparam integer CLR_LIM = CLEAR_MS * (CLK_FREQ / 1000);
     localparam integer CLR_W   = $clog2(CLR_LIM + 1);
     reg [CLR_W-1:0] cnt_clr = 0;
@@ -224,27 +226,27 @@ module secuenciador #(
         if (rst || modo != M_CLEAR)
             cnt_clr <= 0;
         else if (cnt_clr < CLR_LIM) begin
-            cnt_clr <= cnt_clr + 1'b1; // Se mantiene 1'b1 porque CLR_W es parametrizable
+            cnt_clr <= cnt_clr + 1'b1; // se deja 1'b1 porque CLR_W es parametrizable
             if (cnt_clr == CLR_LIM - 1) borrar <= 1'b1;
         end
     end
 
-    // ---------------- LEDs de modo ----------------
-    reg [24:0] cnt_parp = 25'd0;                     // bit 24: ~1.5 Hz a 50 MHz
+    // LEDs de modo
+    reg [24:0] cnt_parp = 25'd0;                     // el bit 24 da un parpadeo de 1.5 Hz a 50 MHz
     always @(posedge clk) cnt_parp <= cnt_parp + 25'd1;
 
     assign led_play  = corriendo;
     assign led_rec   = grabando && (armada || cnt_parp[24]);
     assign led_clear = (modo == M_CLEAR) && (cnt_clr < CLR_LIM);
 
-    // ---------------- Captura de lo que se toca ----------------
-    // 'cap' junta todas las teclas vistas desde la mitad del paso anterior.
+    // Captura de lo que se toca
+    // cap junta todas las teclas vistas desde la mitad del paso anterior
     reg  [11:0] cap = 12'd0;
-    reg  [4:0]  tq = 5'd0;                           // teclas del ciclo anterior (flancos)
+    reg  [4:0]  tq = 5'd0;                           // teclas del ciclo anterior, sirve para detectar flancos
     always @(posedge clk) tq <= teclas[4:0];
-    wire [4:0]  flanco = teclas[4:0] & ~tq;          // pulsaciones nuevas (bateria)
+    wire [4:0]  flanco = teclas[4:0] & ~tq;          // pulsaciones nuevas, es lo que importa en bateria
     reg  [4:0]  capb = 5'd0;
-    reg         rec_bat = 1'b0;                      // tipo de la capa que se graba
+    reg         rec_bat = 1'b0;                      // tipo de la capa que se esta grabando
     wire [11:0] tocado = rec_bat ? {7'd0, capb | flanco} : (cap | teclas);
 
     always @(posedge clk) begin
@@ -259,14 +261,14 @@ module secuenciador #(
         else              capb <= capb | flanco;
     end
 
-    // ---------------- Memorias (una por capa) y parametros ----------------
+    // Memorias, una por capa, y sus parametros
     wire [12*NCAPAS-1:0] rd_v;
-    reg                  limpiando = 1'b0;      // barrido que pone a 0 una capa nueva
+    reg                  limpiando = 1'b0;      // barrido que pone en 0 una capa nueva
     reg  [5:0]           cnt_limp  = 6'd0;
 
     wire entra_rec   = grabando && !grab_ant;
     wire nueva       = (usadas < NCAPAS);
-    wire [1:0] capa_nueva = nueva ? usadas[1:0] : 2'd3;           // llenas: se sigue en la ultima
+    wire [1:0] capa_nueva = nueva ? usadas[1:0] : 2'd3;           // si estan llenas se sigue en la ultima
     wire escribe     = a_mitad && rec && !entra_rec && !limpiando && (tocado != 12'd0);
 
     wire [11:0] rd_rec = rd_v[12*capa_rec +: 12];
@@ -277,8 +279,8 @@ module secuenciador #(
     generate
         for (g = 0; g < NCAPAS; g = g + 1) begin : cp
             wire propia = grab_ef && (capa_rec == g);
-            // Con un solo puerto de lectura se lee el paso actual (fase < 5) y luego el
-            // siguiente (fase >= 5); asi se sabe si la nota CONTINUA en el paso que viene.
+            // Como hay un solo puerto de lectura, primero se lee el paso actual (fase menor a 5)
+            // y despues el siguiente (fase mayor o igual a 5), asi se sabe si la nota continua en el paso que viene
             wire        ver_sig = (fase >= 24'd5);
             wire [5:0]  ra_cur  = paso_r & lmask_v[6*g +: 6];
             wire [5:0]  ra_sig  = (paso_r + 6'd1) & lmask_v[6*g +: 6];
@@ -297,10 +299,10 @@ module secuenciador #(
             always @(posedge clk) begin
                 if (fase == 24'd3) cur <= rd_v[12*g +: 12];     // lectura del paso actual
                 if (fase == 24'd8) sig <= rd_v[12*g +: 12];     // lectura del paso siguiente
-                // La capa que se esta grabando no suena mientras se graba (suena en PLAY).
-                // Una nota que sigue en el paso siguiente NO se corta (no hay re-ataque);
-                // solo se calla el ultimo 1/8 de las notas que terminan. Durante los
-                // primeros ciclos del paso (la RAM aun lee) se mantiene el valor anterior.
+                // La capa que se esta grabando no suena mientras se graba, suena al pasar a PLAY.
+                // Una nota que sigue en el paso siguiente no se corta y no se vuelve a atacar.
+                // Solo se calla el ultimo octavo de las notas que terminan.
+                // En los primeros ciclos del paso la RAM todavia esta leyendo, ahi se mantiene el valor anterior.
                 if (rst || !corriendo || (g >= usadas) || propia)
                     gate_r <= 12'd0;
                 else if (fase > 24'd4)
@@ -323,7 +325,7 @@ module secuenciador #(
     assign capa_s    = c_s;
     assign capa_r    = c_r;
 
-    // Largo (en pasos) que necesita el paso actual: 16, 32 o 64
+    // Largo en pasos que necesita el paso actual, 16, 32 o 64
     wire [5:0] lm_nuevo = (paso_r <= 6'd15) ? 6'd15 : (paso_r <= 6'd31) ? 6'd31 : 6'd63;
 
     always @(posedge clk) begin
@@ -358,6 +360,7 @@ module secuenciador #(
 
             if (escribe) begin
                 // la capa se alarga hasta el compas de su ultima nota
+                // y solo cuenta como usada cuando se escribe su primera nota
                 lmask_v[6*capa_rec +: 6] <=
                     ((usadas == {1'b0, capa_rec}) ? 6'd0 : lmask_v[6*capa_rec +: 6]) | lm_nuevo;
                 if (usadas == {1'b0, capa_rec}) usadas <= usadas + 3'd1;
@@ -365,14 +368,14 @@ module secuenciador #(
         end
     end
 
-    // ---------------- Metronomo ----------------
-    // Un clic de 10 ms cada negra (cada 4 pasos); el del paso 0 de cada compas es mas agudo.
+    // Metronomo
+    // Un clic de 10 ms por negra, o sea cada 4 pasos, y el del paso 0 de cada compas es mas agudo
     localparam integer CLICK_CICLOS = CLK_FREQ / 100;
     localparam signed [19:0] CLICK_AMP = 20'sd10240;
 
     wire metro   = corriendo && (grabando || usadas == 3'd0);
     wire clic_on = metro && (paso_r[1:0] == 2'b00) && (fase < CLICK_CICLOS);
-    wire tono    = (paso_r[3:0] == 4'd0) ? fase[13] : fase[14];   // ~3 kHz / ~1.5 kHz a 50 MHz
+    wire tono    = (paso_r[3:0] == 4'd0) ? fase[13] : fase[14];   // unos 3 kHz el agudo y 1.5 kHz el grave a 50 MHz
 
     assign click = !clic_on ? 20'sd0 : (tono ? CLICK_AMP : -CLICK_AMP);
 
