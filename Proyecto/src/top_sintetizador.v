@@ -1,33 +1,35 @@
-// Top: 12 pulsadores en matriz 4x3 con diodos (polifonico) + encoder KY-040
-// + salida I2S (MAX98357A) + VGA + displays + ADSR por voz + pedal de sustain
-// + eco + octavas con dos pulsadores.
+// Top del sintetizador.
+// Junta un teclado de 12 pulsadores en matriz 4x3 con diodos para tocar varias notas a la vez,
+// un encoder KY-040 para la onda, salida I2S al MAX98357A, VGA, displays,
+// ADSR por voz, pedal de sustain, eco, octavas con dos pulsadores,
+// secuenciador con capas y una bateria sintetizada.
 module top_sintetizador (
     input  wire       clk,       // 50 MHz
     input  wire       rst,       // boton de reset, activo en bajo
-    input  wire [2:0] cols_tec,  // columnas de la matriz (con pull-down externo de 10 kohm)
+    input  wire [2:0] cols_tec,  // columnas de la matriz, con pull-down externo de 10 kohm
     output wire [3:0] rows_tec,  // filas de la matriz
     input  wire       pin_a,     // encoder CLK
     input  wire       pin_b,     // encoder DT
     input  wire       vol_a,     // encoder de volumen CLK
     input  wire       vol_b,     // encoder de volumen DT
-    input  wire       env_a,     // encoder de parametros (ADSR + Eco) CLK
-    input  wire       env_b,     // encoder de parametros (ADSR + Eco) DT
-    input  wire       env_btn,   // pulsador: elige el parametro (A, D, S, R, T, FB, MIX)
-    output wire [7:0] led_sel,   // LED del parametro elegido (D3..D10 de la placa, se enciende con 0)
-    input  wire       oct_sube_n, // pulsador octava arriba (a GND al pulsar)
-    input  wire       oct_baja_n, // pulsador octava abajo  (a GND al pulsar)
-    output wire [3:0] led_oct,   // LED de la octava 3..6 (D11..D14 de la placa, se enciende con 0)
-    input  wire       pedal,     // pedal de sustain: interruptor SW1 del DIP (ON = pedal abajo)
-    input  wire       sw_eco,    // eco: interruptor SW2 del DIP (ON = eco encendido)
-    input  wire       sw_seq_a_n, // secuenciador: interruptor A (a GND = cerrado)
-    input  wire       sw_seq_b_n, // secuenciador: interruptor B (a GND = cerrado)
-    input  wire       sw_bat_n,   // modo bateria: interruptor a GND = bateria (DIP SW3: ON = bateria)
-    output wire       led_seq_play,  // LED externo: loop corriendo (se enciende con 1)
-    output wire       led_seq_rec,   // LED externo: grabando (parpadea = esperando el inicio)
-    output wire       led_seq_clear, // LED externo: modo CLEAR
+    input  wire       env_a,     // encoder de parametros (ADSR, eco y BPM) CLK
+    input  wire       env_b,     // encoder de parametros (ADSR, eco y BPM) DT
+    input  wire       env_btn,   // pulsador que elige el parametro
+    output wire [7:0] led_sel,   // LED del parametro elegido, D3 a D10 de la placa, se enciende con 0
+    input  wire       oct_sube_n, // pulsador de octava arriba, va a GND al pulsar
+    input  wire       oct_baja_n, // pulsador de octava abajo, va a GND al pulsar
+    output wire [3:0] led_oct,   // LED de la octava 3 a 6, D11 a D14 de la placa, se enciende con 0
+    input  wire       pedal,     // pedal de sustain, es el interruptor SW1 del DIP y ON es pedal abajo
+    input  wire       sw_eco,    // eco, es el interruptor SW2 del DIP y ON es eco encendido
+    input  wire       sw_seq_a_n, // secuenciador, interruptor A, a GND es cerrado
+    input  wire       sw_seq_b_n, // secuenciador, interruptor B, a GND es cerrado
+    input  wire       sw_bat_n,   // modo bateria, a GND es bateria, en el DIP SW3 en ON es bateria
+    output wire       led_seq_play,  // LED externo, loop corriendo, se enciende con 1
+    output wire       led_seq_rec,   // LED externo, grabando, parpadea mientras espera el inicio
+    output wire       led_seq_clear, // LED externo, modo CLEAR
     output wire       i2s_bclk,  // al pin BCLK del MAX98357A
-    output wire       i2s_lrclk, // al pin LRC  del MAX98357A
-    output wire       i2s_din,   // al pin DIN  del MAX98357A
+    output wire       i2s_lrclk, // al pin LRC del MAX98357A
+    output wire       i2s_din,   // al pin DIN del MAX98357A
     output reg  [6:0] seg,
     output reg  [3:0] dig,
     output wire       vga_hs,
@@ -37,12 +39,12 @@ module top_sintetizador (
     output wire       vga_b
 );
 
-    wire rst_h = ~rst;           // reset interno activo en alto
+    wire rst_h = ~rst;           // reset interno, activo en alto
 
-    // 1. Matriz de pulsadores: teclas[n] = nota n pulsada (varias a la vez)
+    // 1. Matriz de pulsadores, teclas[n] es la nota n y pueden estar varias a la vez
     wire [11:0] teclas;
 
-    // ACTIVO_ALTO = 1: fila activa en 1 y tecla pulsada = 1 en la columna
+    // Con ACTIVO_ALTO en 1 la fila activa va en 1 y la tecla pulsada se lee como 1 en la columna
     teclado_poly #(.CLK_FREQ(50_000_000), .DEB_MS(5), .ACTIVO_ALTO(1)) u_teclado (
         .clk    (clk),
         .rst    (rst_h),
@@ -51,7 +53,7 @@ module top_sintetizador (
         .teclas (teclas)
     );
 
-    // 2. Encoder: elige la forma de onda
+    // 2. Encoder que elige la forma de onda
     wire [1:0] sel_onda;
 
     encoder_ky040 u_encoder (
@@ -62,8 +64,9 @@ module top_sintetizador (
         .sel_onda (sel_onda)
     );
 
-    // Modo bateria: sincronizar el interruptor. En este modo las teclas 0..4 tocan la
-    // bateria (bombo, caja, hi-hat cerrado, hi-hat abierto, platillo) y NO suenan como notas.
+    // Modo bateria, aqui se sincroniza el interruptor
+    // En este modo las teclas 0 a 4 tocan la bateria, que son bombo, caja, hi-hat cerrado, hi-hat abierto y platillo,
+    // y ya no suenan como notas
     reg sw_bat_s1 = 1'b1, sw_bat_s2 = 1'b1;
     always @(posedge clk) begin
         sw_bat_s1 <= sw_bat_n;
@@ -72,8 +75,8 @@ module top_sintetizador (
     wire modo_bat = ~sw_bat_s2;
     wire [11:0] teclas_sint = modo_bat ? {teclas[11:5], 5'd0} : teclas;
 
-    // 2a. Pedal de sustain: mantiene las notas aunque se suelte la tecla.
-    //     'gate' (no 'teclas') es lo que ve la envolvente de cada voz.
+    // 2a. Pedal de sustain, mantiene las notas aunque sueltes la tecla
+    // Lo que ve la envolvente de cada voz es gate y no teclas
     wire [11:0] gate_vivo;
 
     pedal_sustain #(.ACTIVO_BAJO(1)) u_pedal (
@@ -84,10 +87,10 @@ module top_sintetizador (
         .gate   (gate_vivo)
     );
 
-    // 2b. Parametros ADSR y Eco: un encoder + un pulsador
+    // 2b. Parametros de ADSR, eco y BPM, con un encoder y un pulsador
     wire [3:0] a_idx, d_idx, s_idx, r_idx;
     wire [3:0] eco_t, eco_fb, eco_mix, rev_mix, bpm_idx;
-    wire [3:0] val_par; // El valor a mostrar en el display
+    wire [3:0] val_par; // valor que se muestra en el display
     wire [7:0] led_param;
 
     ctrl_param #(.ACTIVO_BAJO(1)) u_ctrl_param (
@@ -109,10 +112,10 @@ module top_sintetizador (
         .valor   (val_par)
     );
 
-    // Los LED de la placa se encienden con 0 (anodo a 3,3 V)
+    // Los LED de la placa se encienden con 0 porque tienen el anodo a 3.3 V
     assign led_sel = ~led_param;
 
-    // 2c. Octava: dos pulsadores (arriba / abajo), 0 = Do3 ... 3 = Do6
+    // 2c. Octava con dos pulsadores, arriba y abajo, de 0 que es Do3 a 3 que es Do6
     wire [1:0] oct;
 
     botones_octava #(.INICIAL(2'd1)) u_oct (
@@ -125,8 +128,8 @@ module top_sintetizador (
 
     assign led_oct = ~(4'b0001 << oct);
 
-    // 2d. Secuenciador: graba lo que tocas en capas (loop de 1, 2 o 4 compases).
-    //     Cada capa guarda la onda, la octava y el ADSR que tenias al empezar a grabarla.
+    // 2d. Secuenciador, graba lo que tocas en capas con loops de 1, 2 o 4 compases
+    // Cada capa guarda la onda, la octava y el ADSR que tenias al empezar a grabarla
     wire [47:0] gate_capas;
     wire [7:0]  capa_onda, capa_oct;
     wire [15:0] capa_a, capa_d, capa_s, capa_r;
@@ -169,7 +172,7 @@ module top_sintetizador (
         .led_clear  (led_seq_clear)
     );
 
-    // 2e. Cada nota toma sus parametros de la fuente que la pide (teclado o capa)
+    // 2e. Cada nota toma sus parametros de la fuente que la pide, el teclado en vivo o alguna capa
     wire [11:0] gate;
     wire [23:0] onda_v, oct_v;
     wire [47:0] a_v, d_v, s_v, r_v;
@@ -200,7 +203,8 @@ module top_sintetizador (
         .r_v        (r_v)
     );
 
-    // --- PIPELINE REGISTERS FOR TIMING CLOSURE ---
+    // Registros de pipeline para que cierre el timing
+    // Cortan el camino largo entre fuentes_voz y el banco de notas
     reg [11:0] gate_reg;
     reg [23:0] onda_v_reg, oct_v_reg;
     reg [47:0] a_v_reg, d_v_reg, s_v_reg, r_v_reg;
@@ -232,18 +236,18 @@ module top_sintetizador (
     banco_notas u_banco (
         .clk      (clk),
         .rst      (rst_h),
-        .teclas   (gate_reg),      // Modificado para usar registro
-        .onda_v   (onda_v_reg),    // Modificado para usar registro
-        .oct_v    (oct_v_reg),     // Modificado para usar registro
-        .a_v      (a_v_reg),       // Modificado para usar registro
-        .d_v      (d_v_reg),       // Modificado para usar registro
-        .s_v      (s_v_reg),       // Modificado para usar registro
-        .r_v      (r_v_reg),       // Modificado para usar registro
+        .teclas   (gate_reg),      // entra por el registro de pipeline
+        .onda_v   (onda_v_reg),    // entra por el registro de pipeline
+        .oct_v    (oct_v_reg),     // entra por el registro de pipeline
+        .a_v      (a_v_reg),       // entra por el registro de pipeline
+        .d_v      (d_v_reg),       // entra por el registro de pipeline
+        .s_v      (s_v_reg),       // entra por el registro de pipeline
+        .r_v      (r_v_reg),       // entra por el registro de pipeline
         .activas  (activas),
         .suma     (suma)
     );
 
-    // 3b. Bateria: golpes en vivo (modo bateria) + golpes de las capas de bateria
+    // 3b. Bateria, con los golpes en vivo del modo bateria y los de las capas de bateria
     wire [4:0] trig_bat = (modo_bat ? teclas[4:0] : 5'd0) | gate_bat;
     wire signed [19:0] bat_out;
 
@@ -254,7 +258,7 @@ module top_sintetizador (
         .salida (bat_out)
     );
 
-    // 4. Etapa de salida: ganancia, ADSR, eco a 24k, volumen, saturacion e I2S
+    // 4. Etapa de salida, con ganancia, eco a 24k, volumen, saturacion e I2S
     wire [2:0] volumen;
 
     encoder_volumen u_vol (
@@ -265,19 +269,19 @@ module top_sintetizador (
         .nivel (volumen)
     );
 
-    // Sincronizador simple para el switch del Eco (evita metaestabilidad)
+    // Sincronizador simple para el switch del eco, evita metaestabilidad
     reg sw_eco_s1 = 1'b1, sw_eco_s2 = 1'b1;
     always @(posedge clk) begin
         sw_eco_s1 <= sw_eco;
         sw_eco_s2 <= sw_eco_s1;
     end
 
-    // Instancia actualizada con los puertos de Efectos
-    // Mezcla + metronomo (12 sierras maximo = +-589824, el clic suma 10240: cabe en 21 bits)
+    // Mezcla de las notas mas el metronomo
+    // En el peor caso son 12 voces de seno, que llegan a unos 786000, y el clic suma 10240, todo cabe en 21 bits
     wire signed [20:0] suma_mix = suma + click;
 
     wire signed [15:0] scope_x;      // mezcla seca hacia el osciloscopio VGA
-    wire               scope_tick;   // 1 ciclo por muestra (48.8 kHz)
+    wire               scope_tick;   // un ciclo por muestra, a 48.8 kHz
 
     salida_i2s u_audio (
         .clk       (clk),
@@ -289,7 +293,7 @@ module top_sintetizador (
         .eco_t     (eco_t),
         .eco_fb    (eco_fb),
         .eco_mix   (eco_mix),
-        .eco_ena   (~sw_eco_s2), // DIP en ON (0) = eco encendido
+        .eco_ena   (~sw_eco_s2), // con el DIP en ON la entrada vale 0 y el eco queda encendido
         .scope_x   (scope_x),
         .scope_tick(scope_tick),
         .i2s_bclk  (i2s_bclk),
@@ -297,13 +301,13 @@ module top_sintetizador (
         .i2s_din   (i2s_din)
     );
 
-    // 5. Displays: nota mas grave pulsada en el digito 0 (0-9, A = La#, b = Si),
-    //    volumen en el digito 1, valor de parametro activo en digito 2, onda en digito 3.
-    //    La octava se ve en los LED D11..D14.
-    //    Digito 0 sin teclas y con el secuenciador en PLAY/REC: numero de paso (0-F).
-    //    teclas[n] va en el orden fisico del teclado; 'cromatica' lo reordena por
-    //    altura de la nota (bit 0 = Do, 1 = Do#, 2 = Re, ... 11 = Si) para
-    //    encontrar la mas grave.
+    // 5. Displays
+    // El digito 0 muestra la nota mas grave pulsada, del 0 al 9 y luego A es La# y b es Si
+    // El digito 1 muestra el volumen, el 2 el valor del parametro activo y el 3 la onda
+    // La octava se ve en los LED D11 a D14
+    // Si no hay teclas y el secuenciador esta en PLAY o REC, el digito 0 muestra el numero de paso de 0 a F
+    // teclas[n] va en el orden fisico del teclado, asi que cromatica lo reordena por altura de nota
+    // con el bit 0 en Do, el 1 en Do#, el 2 en Re y asi hasta el 11 en Si, y de ahi se saca la mas grave
     wire [11:0] cromatica = {teclas[11], teclas[8], teclas[5], teclas[2],     // Si, La#, La, Sol#
                              teclas[10], teclas[7], teclas[4], teclas[1],     // Sol, Fa#, Fa, Mi
                              teclas[9],  teclas[6], teclas[3], teclas[0]};    // Re#, Re, Do#, Do
@@ -327,6 +331,7 @@ module top_sintetizador (
     end
     wire hay_tecla = |teclas;
 
+    // Los cuatro digitos se multiplexan, cada uno se enciende un cuarto del tiempo
     reg [15:0] clk_div = 16'd0;
     always @(posedge clk) clk_div <= clk_div + 1'b1;
 
@@ -343,24 +348,24 @@ module top_sintetizador (
         case (sel_disp)
             2'b00: begin
                 dig = 4'b1110;
-                // Con teclas pulsadas: la nota mas grave. Sin teclas y con el loop
-                // corriendo: el paso (0-F). Parado: apagado.
+                // Con teclas pulsadas muestra la nota mas grave
+                // Sin teclas y con el loop corriendo muestra el paso, y parado queda apagado
                 digito_mostrar = hay_tecla ? nota_baja : paso_seq;
                 seg = (hay_tecla || seq_corre) ? seg_decodificado : 7'b1111111;
             end
-            2'b01: begin                       // digito 1: volumen 0-7
+            2'b01: begin                       // digito 1, volumen de 0 a 7
                 dig = 4'b1101;
                 digito_mostrar = {1'b0, volumen};
                 seg = seg_decodificado;
             end
-            2'b10: begin                       // digito 2: valor del parametro elegido (hex)
+            2'b10: begin                       // digito 2, valor del parametro elegido en hexadecimal
                 dig = 4'b1011;
-                digito_mostrar = val_par;      // Viene de ctrl_param
+                digito_mostrar = val_par;      // viene de ctrl_param
                 seg = seg_decodificado;
             end
             2'b11: begin
                 dig = 4'b0111;
-                digito_mostrar = modo_bat ? 4'hd : {2'b00, sel_onda};   // 'd' = bateria
+                digito_mostrar = modo_bat ? 4'hd : {2'b00, sel_onda};   // la d indica modo bateria
                 seg = seg_decodificado;
             end
             default: begin
@@ -371,7 +376,7 @@ module top_sintetizador (
         endcase
     end
 
-    // 6. VGA (osciloscopio de la mezcla real + parametros)
+    // 6. VGA, con el osciloscopio de la mezcla real y los parametros
     wire       video_on;
     wire [9:0] p_x;
     wire [9:0] p_y;
