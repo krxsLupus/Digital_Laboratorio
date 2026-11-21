@@ -1,6 +1,6 @@
-// Banco de 12 voces: una por nota, todas pueden sonar a la vez (polifonia).
+// Banco de 12 voces: una por nota, todas pueden sonar a la vez.
 //
-// Version optimizada en area (mismos puertos que la anterior):
+// Version optimizada en area, mismos puertos que la anterior:
 //   * Los 12 acumuladores de fase siguen en paralelo (corren a 50 MHz).
 //   * La envolvente ADSR es SERIAL: un solo datapath recorre las 12 voces, una por
 //     ciclo, justo despues de cada 'tick' (1 vez por muestra de audio, 1024 ciclos).
@@ -12,15 +12,15 @@
 module banco_notas (
     input  wire               clk,         // 50 MHz
     input  wire               rst,         // activo en alto
-    input  wire [11:0]        teclas,      // bit n = nota n pulsada (gate de la envolvente)
+    input  wire [11:0]        teclas,      // bit n = nota n pulsada 
     input  wire [23:0]        onda_v,      // 2 bits por voz: 0 cuadrada, 1 sierra, 2 triangular, 3 seno
     input  wire [23:0]        oct_v,       // 2 bits por voz: 0 = Do3, 1 = Do4, 2 = Do5, 3 = Do6
     input  wire [47:0]        a_v,         // 4 bits por voz: ataque
     input  wire [47:0]        d_v,         //                 decay
     input  wire [47:0]        s_v,         //                 sustain
     input  wire [47:0]        r_v,         //                 release
-    output wire [11:0]        activas,     // bit n = voz n sonando (tecla o cola de release)
-    output reg  signed [20:0] suma = 21'sd0 // mezcla de las voces (cada una x256); 0 = silencio
+	output wire [11:0]        activas,     // bit n = voz n sonando 
+    output reg  signed [20:0] suma = 21'sd0 // mezcla de las voces; 0 = silencio
 );
 
     // ---------------- Reloj de la envolvente: una vez por muestra de audio ----------------
@@ -35,8 +35,7 @@ module banco_notas (
         else     teclas_reg <= teclas;
     end
 
-    // ---------------- Incremento de fase por nota (50 MHz, acumulador de 32 bits) ----------------
-    // Valores identicos a los de lut_frecuencias.v (mismo orden de indices).
+    // ---------------- Incremento de fase por nota ----------------
     function [31:0] f_inc;
         input integer n;
         begin
@@ -67,11 +66,11 @@ module banco_notas (
     wire [287:0] lvl_v;       // 12 x 24
     wire [11:0]  idle_v;
 
-    // Se escribe desde el datapath serial de la envolvente (mas abajo)
+    // Se escribe desde el datapath serial de la envolvente 
     reg         s2_v = 1'b0;          // hay un resultado listo para guardar
     reg  [3:0]  s2_i = 4'd0;          // a que voz pertenece
-    reg  [2:0]  n_st;                 // siguiente estado   (logica combinacional)
-    reg  [23:0] n_lvl;                // siguiente nivel    (logica combinacional)
+    reg  [2:0]  n_st;                 // siguiente estado  
+    reg  [23:0] n_lvl;                // siguiente nivel   
 
     genvar i;
     generate
@@ -114,10 +113,10 @@ module banco_notas (
 
     // ---------------- Envolvente serial ----------------
     // Tras cada 'tick' se procesan las voces 0..11, una por ciclo, en 3 etapas:
-    //   etapa 0: contador de voz (seq_i)
+    //   etapa 0: contador de voz 
     //   etapa 1: se leen estado, nivel, gate y parametros de la voz seq_i
     //   etapa 2: salida de las lut_tiempos registrada
-    //   escritura: se calcula el siguiente (st, lvl) y se guarda en la voz s2_i
+    //   escritura: se calcula el siguiente y se guarda en la voz s2_i
     reg        seq_act = 1'b0;
     reg  [3:0] seq_i   = 4'd0;
 
@@ -178,7 +177,7 @@ module banco_notas (
         q2_sus   <= (q1_s == 4'd15) ? 24'd8388608 : {1'b0, q1_s, 19'd0};   // S/16 de 2^23; 15 = 1.0
     end
 
-    // Calculo del siguiente estado (misma logica que envelope_adsr.v)
+    // Calculo del siguiente estado, misma logica que envelope_adsr.v
     wire [24:0] lvl_up_a = {1'b0, q2_lvl} + {1'b0, q2_inc_a};
     wire [24:0] dec_tgt  = {1'b0, q2_sus} + {1'b0, q2_inc_d};   // si lvl <= esto, el proximo paso llega a S
     wire [24:0] sus_up   = {1'b0, q2_lvl} + {1'b0, q2_inc_d};
@@ -289,7 +288,7 @@ module banco_notas (
         w_reg   <= a_w;
     end
 
-    // Etapa C: multiplicador (hardware DSP de 9 bits)
+    // Etapa C: multiplicador, hardware DSP de 9 bits
     (* multstyle = "dsp" *) wire signed [17:0] mult = v_reg * $signed({1'b0, e_reg});
 	// Ganancia por forma de onda (iguala el volumen percibido en Do4/Do5)
 	//   0 cuadrada x0.5 | 1 sierra x0.625 | 2 triangular x1.5 | 3 seno x2
