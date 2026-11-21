@@ -1,52 +1,56 @@
-// Etapa de salida de audio:
-//   ganancia automatica segun voces activas -> margen -> saturacion a 16 bits
-//   -> eco -> volumen -> transmisor I2S (MAX98357A).
+// Etapa de salida del audio.
+// La senal pasa por ganancia automatica segun las voces activas, margen, saturacion a 16 bits,
+// eco, volumen y al final el transmisor I2S que habla con el MAX98357A.
 //
-// 0. Ganancia automatica: cuantas mas voces suenan a la vez, mas grande es la
-//    suma y antes recorta. Se multiplica la suma por 1/raiz(n), con n = voces
-//    activas (teclas pulsadas + colas de release del ADSR). La ganancia no salta:
-//    se desliza hacia su valor objetivo 1 paso por muestra de audio, para que
-//    al entrar o salir una voz no haya un escalon de nivel en las demas.
-//    Con n = 1 la ganancia es exactamente 1, asi que una sola nota
-//    suena igual que antes. Con acordes el nivel total se mantiene parecido
-//    (n voces independientes suman ~ raiz(n) en nivel) y el pico queda unas
-//    1.5 veces el de una sola nota en vez de n veces.
-//        n:      1    2    3    4    5    6    7    8    9   10   11   12
-//        x256: 256  181  148  128  114  105   97   91   85   81   77   74
+// 0. Ganancia automatica
+//    Mientras mas voces suenan a la vez mas grande es la suma y antes recorta.
+//    Por eso se multiplica la suma por 1 entre raiz de n, donde n son las voces activas,
+//    contando teclas pulsadas y colas de release de la ADSR.
+//    La ganancia no salta de golpe, se desliza hacia su valor objetivo para que al entrar o salir una voz
+//    las demas no sufran un escalon de volumen.
+//    Con n igual a 1 la ganancia es exactamente 1, asi que una sola nota suena igual que sin esto.
+//    Con acordes el nivel total se mantiene parecido, porque n voces independientes suman mas o menos raiz de n en nivel,
+//    y el pico queda en unas 1.5 veces el de una nota sola en vez de n veces.
+//        n       1    2    3    4    5    6    7    8    9   10   11   12
+//        x256  256  181  148  128  114  105   97   91   85   81   77   74
 //
-// 1. Ganancia por forma de onda: ahora se aplica POR VOZ dentro de banco_notas (la
-//    sierra x1.5; cuadrada, triangular y seno x1), porque las capas del secuenciador
-//    pueden sonar a la vez con ondas distintas. Es equivalente al esquema anterior
-//    (triangular/seno x4 con reserva 4 == x1 con reserva 2).
+// 1. Ganancia por forma de onda
+//    Ya no se hace aqui, se aplica por voz dentro de banco_notas con cuadrada por 0.5, sierra por 0.625,
+//    triangular por 1.5 y seno por 2. Se hace ahi porque las capas del secuenciador pueden sonar
+//    a la vez con ondas distintas.
 //
-// 2. Margen: 2 pasos de 6 dB (>>> 2) ANTES de saturar a 16 bits, para que ni una sola
-//    nota ni un acorde recorten. Si quieres mas volumen, pon RESERVA = 1 (+6 dB, pero
-//    empieza a recortar con acordes grandes); si oyes recorte, subelo.
+// 2. Margen
+//    Se bajan 2 pasos de 6 dB (desplazar 2 bits) antes de saturar a 16 bits, para que ni una nota sola ni un acorde recorten.
+//    Si quieres mas volumen pon RESERVA en 1, que sube 6 dB pero empieza a recortar con acordes grandes.
+//    Si escuchas recorte, subelo.
 //
-// 3. Eco (a 24.4 kHz) y volumen maestro al final: 0 = silencio, 7 = maximo; cada
-//    nivel menos baja 6 dB. El volumen NO cambia el recorte: eso lo decide RESERVA.
+// 3. Eco y volumen maestro al final
+//    El eco trabaja a 24.4 kHz. En el volumen 0 es silencio y 7 es el maximo, cada nivel menos baja 6 dB.
+//    El volumen no cambia el recorte, eso lo decide RESERVA.
 module salida_i2s #(
     parameter integer RESERVA = 2           // pasos de 6 dB de margen antes de saturar
 )(
     input  wire               clk,
     input  wire               rst,
-    input  wire signed [20:0] suma,       // mezcla de banco_notas (+ metronomo)
+    input  wire signed [20:0] suma,       // mezcla de banco_notas mas el metronomo
     input  wire [11:0]        activas,
-    input  wire signed [19:0] bat,        // bateria (se suma despues de la ganancia automatica)
-    input  wire [2:0]         volumen,    
-    // Parámetros del Eco
+    input  wire signed [19:0] bat,        // bateria, se suma despues de la ganancia automatica
+    input  wire [2:0]         volumen,
+    // Parametros del eco
     input  wire [3:0]         eco_t,
     input  wire [3:0]         eco_fb,
     input  wire [3:0]         eco_mix,
-    input  wire               eco_ena,    // SW2 del DIP para encender/apagar
-    output wire signed [15:0] scope_x,    // mezcla seca (para el osciloscopio VGA)
-    output wire               scope_tick, // 1 ciclo por muestra (48.8 kHz)
+    input  wire               eco_ena,    // el SW2 del DIP prende y apaga el eco
+    output wire signed [15:0] scope_x,    // mezcla seca, va al osciloscopio VGA
+    output wire               scope_tick, // un ciclo por muestra, a 48.8 kHz
     output wire               i2s_bclk,
     output wire               i2s_lrclk,
     output wire               i2s_din
 );
 
-    // --- 0. Ganancia automática con Slew-Rate Asimétrico (Bugfix) ---
+    // Paso 0, ganancia automatica
+    // Baja rapido y sube lento, un slew rate asimetrico que arregla un bug de pops
+    // Primero se cuentan las voces activas
     reg [3:0] n_teclas;
     integer   j;
     always @(*) begin
@@ -54,6 +58,7 @@ module salida_i2s #(
         for (j = 0; j < 12; j = j + 1) n_teclas = n_teclas + activas[j];
     end
 
+    // Tabla con el multiplicador objetivo segun cuantas voces hay, sobre 256
     reg [8:0] mult_obj;
     always @(*) begin
         case (n_teclas)
@@ -74,29 +79,30 @@ module salida_i2s #(
 
     reg [9:0] fs_cnt = 10'd0;
     always @(posedge clk) fs_cnt <= fs_cnt + 1'b1;
-    wire tick_fs = (fs_cnt == 10'd1023); // Pulso a 48.8 kHz
+    wire tick_fs = (fs_cnt == 10'd1023); // un pulso por muestra, a 48.8 kHz
 
+    // La ganancia real va persiguiendo al objetivo una vez por muestra
     reg [8:0] mult = 9'd256;
     always @(posedge clk) begin
         if (rst) mult <= 9'd256;
         else if (tick_fs) begin
-            if (mult < mult_obj)      
-                mult <= mult + 1'b1; // Sube lento para evitar pops en el release
+            if (mult < mult_obj)
+                mult <= mult + 1'b1; // sube lento para que no haya pops al soltar notas
             else if (mult > mult_obj) begin
-                // Baja rápido (ataque) para acomodar acordes instantáneamente
-                if (mult - mult_obj > 9'd8) mult <= mult - 4'd8; 
+                // baja rapido para acomodar un acorde de golpe
+                if (mult - mult_obj > 9'd8) mult <= mult - 4'd8;
                 else                        mult <= mult_obj;
             end
         end
     end
 
-    wire signed [30:0] producto = suma * $signed({1'b0, mult});   // 21 b x 10 b con signo
+    wire signed [30:0] producto = suma * $signed({1'b0, mult});   // 21 bits por 10 bits con signo
     reg  signed [20:0] suma_n = 21'sd0;
     always @(posedge clk) suma_n <= producto >>> 8;
 
-    // --- 1. Margen y saturación a 16 bits (señal seca) ---
-    // El margen se resta aqui, antes de saturar: si se restara despues del
-    // limite de 16 bits, la onda ya iria recortada.
+    // Paso 1, margen y saturacion a 16 bits de la senal seca
+    // El margen se quita aqui, antes de saturar, porque si se hiciera despues del limite de 16 bits
+    // la onda ya estaria recortada
     wire signed [20:0] suma_t      = suma_n + {bat[19], bat};
     wire signed [20:0] con_reserva = suma_t >>> RESERVA;
 
@@ -110,9 +116,9 @@ module salida_i2s #(
     assign scope_x    = x_seco;
     assign scope_tick = tick_fs;
 
-    // --- 2. Cadena de Efectos (Eco a 24.4 kHz) ---
+    // Paso 2, cadena de efectos con el eco a 24.4 kHz
     wire signed [15:0] y_mix;
-    wire [3:0] mix_efectivo = eco_ena ? eco_mix : 4'd0; // Bypass por hardware
+    wire [3:0] mix_efectivo = eco_ena ? eco_mix : 4'd0; // el bypass solo pone la mezcla en 0, la memoria del eco sigue corriendo
 
     efectos_audio u_efectos (
         .clk     (clk),
@@ -125,8 +131,8 @@ module salida_i2s #(
         .y       (y_mix)
     );
 
-    // --- 3. Volumen maestro y salida ---
-    wire [2:0] desplaz = 3'd7 - volumen;                       // volumen 7 -> 0, 1 -> 6
+    // Paso 3, volumen maestro y salida
+    wire [2:0] desplaz = 3'd7 - volumen;                       // con volumen 7 no se desplaza nada y con 1 se desplaza 6
     wire signed [15:0] atenuada = (volumen == 3'd0) ? 16'sd0 : (y_mix >>> desplaz);
 
     i2s_tx u_i2s (
